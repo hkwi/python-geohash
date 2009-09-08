@@ -34,41 +34,29 @@ def encode(latitude, longitude, precision=12):
 	lat = (latitude+90.0)/180.0
 	lon = (longitude+180.0)/360.0
 	
-	bit_length=precision*5
-	lat_length=lon_length=bit_length/2
+	lat_length=lon_length=precision*5/2
+	odd = False
 	if precision%2==1:
+		odd = True
 		lon_length+=1
 	
-	if precision%2==0:
-		a = int((1<<lat_length)*lat)
-		b = int((1<<lon_length)*lon)
-	else:
+	if odd:
 		b = int((1<<lat_length)*lat)
 		a = int((1<<lon_length)*lon)
+	else:
+		a = int((1<<lat_length)*lat)
+		b = int((1<<lon_length)*lon)
 	
-	t = 0
-	while lat_length>0:
-		t = (t<<1) + (a&1)
-		a = a>>1
-		t = (t<<1) + (b&1)
-		b = b>>1
-		lat_length-=1
-	
-	if precision%2==1:
-		t = (t<<1) + (a&1)
-		a = a>>1
-	
-	ret = []
+	ret = ''
 	while precision>0:
-		c = 0
-		for i in range(5):
-			c = (c<<1) + (t&1)
-			t = t>>1
-		
-		ret.append(_base32[c])
+		c = ((a&4)<<2) + ((b&2)<<2) + ((a&2)<<1) + ((b&1)<<1) + (a&1)
+		ret += _base32[c]
+		t = a>>3
+		a = b>>2
+		b = t
 		precision-=1
 	
-	return ''.join(ret)
+	return ret[::-1]
 
 def decode(hashcode, delta=False):
 	lon = 0
