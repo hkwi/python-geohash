@@ -23,7 +23,7 @@ del i
 # 	t.reverse()
 # 	return ''.join(t)
 
-def encode(latitude, longitude, length=11):
+def encode(latitude, longitude, precision=12):
 	if latitude > 90.0 or latitude < -90.0:
 		raise Exception("invalid latitude.")
 	while longitude > 180.0:
@@ -34,12 +34,12 @@ def encode(latitude, longitude, length=11):
 	lat = (latitude+90.0)/180.0
 	lon = (longitude+180.0)/360.0
 	
-	bit_length=length*5
+	bit_length=precision*5
 	lat_length=lon_length=bit_length/2
-	if length%2==1:
+	if precision%2==1:
 		lon_length+=1
 	
-	if length%2==0:
+	if precision%2==0:
 		a = int((1<<lat_length)*lat)
 		b = int((1<<lon_length)*lon)
 	else:
@@ -54,19 +54,19 @@ def encode(latitude, longitude, length=11):
 		b = b>>1
 		lat_length-=1
 	
-	if length%2==1:
+	if precision%2==1:
 		t = (t<<1) + (a&1)
 		a = a>>1
 	
 	ret = []
-	while length>0:
+	while precision>0:
 		c = 0
 		for i in range(5):
 			c = (c<<1) + (t&1)
 			t = t>>1
 		
 		ret.append(_base32[c])
-		length-=1
+		precision-=1
 	
 	return ''.join(ret)
 
