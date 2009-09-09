@@ -19,7 +19,7 @@ def encode_tuple(lat, lon, duals=3):
 	if duals==0:
 		return a1, o1, a2, o2, a3, o3
 	
-	d2 = 1+((ab>>1)&2)+(ob>>2)
+	d2 = 1+((ab>>1)&2)+((ob>>2)&1)
 	if duals==1:
 		return a1, o1, a2, o2, a3, o3, d2
 	
