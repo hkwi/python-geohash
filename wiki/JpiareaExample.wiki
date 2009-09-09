@@ -1,0 +1,18 @@
+#summary jpiarea usage example
+
+Encoding.
+{{{
+>>> import jpiarea
+>>> jpiarea.encode(35.65486522, 156.42456722)
+'53563332312'
+}}}
+
+Decoding. decode() returns a tuple of (latitude, longitude), which is a center coordinate of the grid code. decode_sw returns south-west coordinates and grid size like geohash.decode_exactly(). bbox() returns a bounding box information.
+{{{
+>>> jpiarea.decode('53563332312')
+(35.66015625, 156.462890625)
+>>> jpiarea.decode_sw('53563332312',delta=True)
+(35.658854166666664, 156.4609375, 0.0026041666666666665, 0.00390625)
+>>> jpiarea.bbox('53563332312')
+{'s': 156.4609375, 'e': 35.661458333333329, 'w': 35.658854166666664, 'n': 156.46484375}
+}}}
