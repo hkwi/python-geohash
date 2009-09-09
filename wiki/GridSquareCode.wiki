@@ -1,5 +1,5 @@
+#summary jpgrid usage
 #labels Japan,JISX0410,Grid
-# summary jpgrid usage
 
 = API =
 Encoding.
