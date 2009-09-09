@@ -1,0 +1,21 @@
+#labels Japan,JISX0410,Grid
+# jpgrid usage
+
+= Grid Square Code =
+
+
+
+= API =
+
+Encoding.
+{{{
+>>> import jpgrid
+>>> jpgrid.encode(35,135)
+'52354000111'
+}}}
+
+Decoding. returns a tuple of (latitude, longitude), which is a center coordinate of the grid code.
+{{{
+>>> jpgrid.decode('52354000111')
+(35.000520833333333, 135.00078124999999)
+}}}
