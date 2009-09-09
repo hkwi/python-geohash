@@ -1,6 +1,5 @@
 #summary jpgrid usage example
 
-= jpgrid Examples =
 Encoding.
 {{{
 >>> import jpgrid
