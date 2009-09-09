@@ -8,15 +8,7 @@ Encoding.
 '53563383622'
 }}}
 
-Decoding. decode() returns a tuple of (latitude, longitude), which is a center coordinate of the grid code. bbox() returns a bounding box information.
-{{{
->>> jpgrid.decode('53563383622')
-(35.658854166666664, 156.42421874999999)
->>> jpgrid.bbox('53563383622')
-{'s': 156.42343750000001, 'e': 35.659374999999997, 'w': 35.658333333333331, 'n': 156.42500000000001}
-}}}
-
-Short cut methods.
+Shortcut encoding methods.
 {{{
 >>> # 第１次地域区画
 ... jpgrid.encodeLv1(35.65486522, 156.42456722)
@@ -48,4 +40,14 @@ Short cut methods.
 >>> # 10倍地域メッシュ（統合地域メッシュ）
 ... jpgrid.encodeUni10(35.65486522, 156.42456722)
 '535633'
+}}}
+
+Decoding. decode() returns a tuple of (latitude, longitude), which is a center coordinate of the grid code. decode_sw returns south-west coordinates and grid size like geohash.decode_exactly(). bbox() returns a bounding box information.
+{{{
+>>> jpgrid.decode('53563383622')
+(35.658854166666664, 156.42421874999999)
+>>> jpgrid.decode_sw('53563383622', True)
+(35.658333333333331, 156.42343750000001, 0.0010416666666666667, 0.0015625000000000001)
+>>> jpgrid.bbox('53563383622')
+{'s': 156.42343750000001, 'e': 35.659374999999997, 'w': 35.658333333333331, 'n': 156.42500000000001}
 }}}
