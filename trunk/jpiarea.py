@@ -1,6 +1,6 @@
 # coding: UTF-8
-# Coder for Japanese iarea area mesh.
-# DoCoMo's Open-iarea in japan use a meshcode which is very similar to
+# Coder for Japanese iarea grid code.
+# DoCoMo's Open-iArea in Japan use a gridcode which is very similar to
 # JIS X 0410, but absolutely different in detail.
 
 def encode(lat, lon):
@@ -23,31 +23,31 @@ def encode(lat, lon):
 	t.reverse()
 	return ''.join([str(i) for i in t])
 
-def decode_ws(meshcode, delta=False):
+def decode_sw(gridcode, delta=False):
 	lat = lon = 0
 	base = 1
-	if len(meshcode)>6:
-		for i in meshcode[6:]:
+	if len(gridcode)>6:
+		for i in gridcode[6:]:
 			lat = (lat<<1) + int(i)/2
 			lon = (lon<<1) + int(i)%2
 			base = base<<1
 	
-	lat = int(meshcode[4:5])*base + lat
-	lon = int(meshcode[5:6])*base + lon
+	lat = int(gridcode[4:5])*base + lat
+	lon = int(gridcode[5:6])*base + lon
 	
 	base = base * 8
-	lat = int(meshcode[0:2])*base + lat
-	lon = int(meshcode[2:4])*base + lon
+	lat = int(gridcode[0:2])*base + lat
+	lon = int(gridcode[2:4])*base + lon
 	
 	if delta:
 		return (float(lat)/(1.5*base), float(lon)/base+100.0, 1.0/(1.5*base), 1.0/base)
 	else:
 		return (float(lat)/(1.5*base), float(lon)/base+100.0)
 
-def decode(meshcode):
-	(a,b,c,d) = decode_ws(meshcode, True)
+def decode(gridcode):
+	(a,b,c,d) = decode_sw(gridcode, True)
 	return a+c/2.0, b+d/2.0
 
-def bbox(meshcode):
-	(a,b,c,d) = decode_ws(meshcode, True)
+def bbox(gridcode):
+	(a,b,c,d) = decode_sw(gridcode, True)
 	return {'w':a, 's':b, 'n':b+d, 'e':a+c}
