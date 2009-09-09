@@ -1,6 +1,9 @@
 #summary Grid code overview.
+#labels 地域メッシュ,日本,NTTDoCoMo,iエリア
 
 Japan's government utilize [http://www.stat.go.jp/data/mesh/ grid square mesh code] for census and other purposes. The specificateion is documented as JIS C 6304, and revised to JIS X 0410. NTT DoCoMo use modified version of that grid code for [http://www.nttdocomo.co.jp/service/imode/make/content/iarea/domestic/index.html Open i-Area in Japan].
 
 Base grid size is about 1km. Below shows various grid sizes.
 http://spreadsheets.google.com/pub?key=ty87iDFT6tDA4EVTbGo42AQ&oid=2&output=image&ext=img.png
+
+You can scan a database with grid code PREFIX to find a record that belongs to that grid.
