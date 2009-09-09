@@ -61,7 +61,7 @@ def encode_uni2(lat, lon):
 def encode(lat, lon, duals=3):
 	return ''.join([str(i) for i in encode_tuple(lat,lon, duals)])
 
-def decode_ws(meshcode, delta=True):
+def decode_ws(meshcode, delta=False):
 	level = len(meshcode)
 	lat = lon = 0
 	base = 1
