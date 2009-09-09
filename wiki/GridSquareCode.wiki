@@ -1,1 +1,0 @@
-#labels Japan,JISX0410,Grid
