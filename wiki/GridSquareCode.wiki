@@ -4,12 +4,20 @@
 Encoding.
 {{{
 >>> import jpgrid
->>> jpgrid.encode(35,135)
-'52354000111'
+>>> jpgrid.encode(35.65486522, 156.42456722)
+'53563383622'
 }}}
 
-Decoding. returns a tuple of (latitude, longitude), which is a center coordinate of the grid code.
+Decoding. decode() returns a tuple of (latitude, longitude), which is a center coordinate of the grid code. bbox() returns a bounding box information.
 {{{
->>> jpgrid.decode('52354000111')
-(35.000520833333333, 135.00078124999999)
+>>> jpgrid.decode('53563383622')
+(35.658854166666664, 156.42421874999999)
+>>> jpgrid.bbox('53563383622')
+{'s': 156.42343750000001, 'e': 35.659374999999997, 'w': 35.658333333333331, 'n': 156.42500000000001}
+}}}
+
+Short cut methods.
+{{{
+
+
 }}}
