@@ -1,5 +1,5 @@
 # coding: UTF-8
-# Coder for Japanese area mesh. (JIS C 6304 / JIS X 0410)
+# Coder for Japanese grid square code. (JIS C 6304 / JIS X 0410)
 # 行政管理庁告示第143号 http://www.stat.go.jp/data/mesh/
 
 def encode_tuple(lat, lon, duals=3):
@@ -61,15 +61,15 @@ def encode_uni2(lat, lon):
 def encode(lat, lon, duals=3):
 	return ''.join([str(i) for i in encode_tuple(lat,lon, duals)])
 
-def decode_ws(meshcode, delta=False):
-	level = len(meshcode)
+def decode_sw(gridcode, delta=False):
+	level = len(gridcode)
 	lat = lon = 0
 	base = 1
 	if level>8:
-		if meshcode[8:]=='5': # Uni2 mesh
+		if gridcode[8:]=='5': # Uni2 grid
 			pass
 		else:
-			for i in meshcode[8:]:
+			for i in gridcode[8:]:
 				i = int(i)-1
 				lat = (lat<<1) + i/2
 				lon = (lon<<1) + i%2
@@ -78,21 +78,21 @@ def decode_ws(meshcode, delta=False):
 	if level>6:
 		if level==7:
 			base = base*5
-			i = int(meshcode[7:8])-1
+			i = int(gridcode[7:8])-1
 			lat += (i/2) * base
 			lon += (i%2) * base
 		else:
-			lat += int(meshcode[6:7])*base
-			lon += int(meshcode[7:8])*base
+			lat += int(gridcode[6:7])*base
+			lon += int(gridcode[7:8])*base
 	
 	if level>4:
 		base = base*10
-		lat += int(meshcode[4:5])*base
-		lon += int(meshcode[5:6])*base
+		lat += int(gridcode[4:5])*base
+		lon += int(gridcode[5:6])*base
 	
 	base = base*8
-	lat += int(meshcode[0:2])*base
-	lon += int(meshcode[2:4])*base
+	lat += int(gridcode[0:2])*base
+	lon += int(gridcode[2:4])*base
 	
 	lat = float(lat)/(base*1.5)
 	lon = float(lon)/base + 100.0
@@ -101,12 +101,12 @@ def decode_ws(meshcode, delta=False):
 	else:
 		return (lat, lon)
 
-def decode(meshcode):
-	(a,b,c,d) = decode_ws(meshcode, True)
+def decode(gridcode):
+	(a,b,c,d) = decode_sw(gridcode, True)
 	return a+c/2.0, b+d/2.0
 
-def bbox(meshcode):
-	(a,b,c,d) = decode_ws(meshcode, True)
+def bbox(gridcode):
+	(a,b,c,d) = decode_sw(gridcode, True)
 	return {'w':a, 's':b, 'n':b+d, 'e':a+c}
 
 
