@@ -1,6 +1,7 @@
 #labels Japan,JISX0410,Grid
-= API =
+# summary jpgrid usage
 
+= API =
 Encoding.
 {{{
 >>> import jpgrid
