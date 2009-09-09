@@ -1,10 +1,4 @@
 #labels Japan,JISX0410,Grid
-# jpgrid usage
-
-= Grid Square Code =
-
-
-
 = API =
 
 Encoding.
