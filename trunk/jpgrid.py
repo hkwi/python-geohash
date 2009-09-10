@@ -2,108 +2,105 @@
 # Coder for Japanese grid square code. (JIS C 6304 / JIS X 0410)
 # 行政管理庁告示第143号 http://www.stat.go.jp/data/mesh/
 
-def encode_tuple(lat, lon, duals=3):
-	if lat<7 or lon<100:
-		raise Exception('Unsupported location')
+def _encode_i2c(lat, lon, base1):
+	t=[]
+	while base1>80:
+		t.append(1 + (lat&1)*2 + (lon&1))
+		lat = lat>>1
+		lon = lon>>1
+		base1 = base1>>1
 	
-	a1 = int(lat*1.5)
-	o1 = int(lon)%100
-	a2 = int(lat * 12)%8
-	o2 = int(lon *  8)%8
-	a3 = int(lat * 120)%10
-	o3 = int(lon *  80)%10
+	if base1==80:
+		t.append(lon%10)
+		t.append(lat%10)
+		lat = lat/10
+		lon = lon/10
+		base1 = base1/10
+	elif base1==16: # Uni5
+		t.append(1 + (lat&1)*2 + (lon&1))
+		lat = lat>>1
+		lon = lon>>1
+		base1 = base1>>1
+	elif base1==40: # Uni2
+		t.append(5)
+		t.append(lon%5*2)
+		t.append(lat%5*2)
+		lat = lat/5
+		lon = lon/5
+		base1 = base1/5
 	
-	ab = int(lat * 960)&15
-	ob = int(lon * 640)&15
+	if base1==8:
+		t.append(lon%8)
+		t.append(lat%8)
+		lat = lat>>3
+		lon = lon>>3
+		base1 = base1>>3
 	
-	if duals==0:
-		return a1, o1, a2, o2, a3, o3
-	
-	d2 = 1+((ab>>1)&2)+((ob>>2)&1)
-	if duals==1:
-		return a1, o1, a2, o2, a3, o3, d2
-	
-	d3 = 1+(ab&2)+((ob&2)>>1)
-	if duals==2:
-		return a1, o1, a2, o2, a3, o3, d2, d3
-	
-	d4 = 1+((ab<<1)&2)+(ob&1)
-	return a1, o1, a2, o2, a3, o3, d2, d3, d4
+	t.append(lon)
+	t.append(lat)
+	t.reverse()
+	return ''.join([str(i) for i in t])
 
-def encode_uni5(lat, lon):
-	if lat<7 or lon<100:
-		raise Exception('Unsupported location')
-	
-	a1 = int(lat*1.5)
-	o1 = int(lon)%100
-	lat = int(lat * 24)
-	lon = int(lon * 16)
-	a2 = (lat>>1)%8
-	o2 = (lon>>1)%8
-	d = 1 + (lat&1)*2 + (lon&1)
-	
-	return a1, o1, a2, o2, d
+def encode(latitude, longitude, base1=80):
+	return _encode_i2c(int(latitude*base1*1.5), int((longitude-100)*base1), base1)
 
-def encode_uni2(lat, lon):
-	if lat<7 or lon<100:
-		raise Exception('Unsupported location')
-	
-	a1 = int(lat*1.5)
-	o1 = int(lon)%100
-	a2 = int(lat * 12)%8
-	o2 = int(lon *  8)%8
-	a3 = int(lat * 60)%5 * 2
-	o3 = int(lon * 40)%5 * 2
-	
-	return a1, o1, a2, o2, a3, o3, 5
-
-
-def encode(lat, lon, duals=3):
-	return ''.join([str(i) for i in encode_tuple(lat,lon, duals)])
-
-def decode_sw(gridcode, delta=False):
-	level = len(gridcode)
+#def _encode_i2c(lat, lon, base1):
+def _decode_c2i(gridcode):
+	base1 = 1
 	lat = lon = 0
-	base = 1
-	if level>8:
-		if gridcode[8:]=='5': # Uni2 grid
-			pass
+	codelen = len(gridcode)
+	if codelen>0:
+		lat = int(gridcode[0:2])
+		lon = int(gridcode[2:4])
+	
+	if codelen>4:
+		lat = (lat<<3) + int(gridcode[4:5])
+		lon = (lon<<3) + int(gridcode[5:6])
+		base1 = base1<<3
+	
+	if codelen>6:
+		if codelen==7:
+			i = int(gridcode[6:7])-1
+			lat = (lat<<1) + i/2
+			lon = (lon<<1) + i%2
+			base1 = base1<<1
+		else:
+			lat = lat*10 + int(gridcode[6:7])
+			lon = lon*10 + int(gridcode[7:8])
+			base1 = base1*10
+	
+	if codelen>8:
+		if gridcode[8:]=='5':
+			lat = lat>>1
+			lon = lon>>1
+			base1 = base1>>1
 		else:
 			for i in gridcode[8:]:
 				i = int(i)-1
 				lat = (lat<<1) + i/2
 				lon = (lon<<1) + i%2
-				base = base<<1
+				base1 = base1<<1
 	
-	if level>6:
-		if level==7:
-			base = base*5
-			i = int(gridcode[7:8])-1
-			lat += (i/2) * base
-			lon += (i%2) * base
-		else:
-			lat += int(gridcode[6:7])*base
-			lon += int(gridcode[7:8])*base
+	return (lat, lon, base1)
+
+def decode_sw(gridcode, delta=False):
+	(lat, lon, base1) = _decode_c2i(gridcode)
 	
-	if level>4:
-		base = base*10
-		lat += int(gridcode[4:5])*base
-		lon += int(gridcode[5:6])*base
+	lat = lat/(base1*1.5)
+	lon = lon/float(base1) + 100.0
 	
-	base = base*8
-	lat += int(gridcode[0:2])*base
-	lon += int(gridcode[2:4])*base
-	
-	lat = float(lat)/(base*1.5)
-	lon = float(lon)/base + 100.0
 	if delta:
-		return (lat, lon, 1.0/(base*1.5), 1.0/base)
+		return (lat, lon, 1.0/(base1*1.5), 1.0/base1)
 	else:
 		return (lat, lon)
 
 def decode(gridcode):
-	(a,b,c,d) = decode_sw(gridcode, True)
-	return a+c/2.0, b+d/2.0
+	(lat, lon, base1) = _decode_c2i(gridcode)
+	
+	lat = (lat<<1) + 1
+	lon = (lon<<1) + 1
+	base1 = base1<<1
+	return (lat/(base1*1.5), lon/float(base1) + 100.0)
 
 def bbox(gridcode):
 	(a,b,c,d) = decode_sw(gridcode, True)
@@ -112,31 +109,52 @@ def bbox(gridcode):
 
 ## short-cut methods
 def encodeLv1(lat, lon):
-	return encode(lat,lon,0)[0:4]
+	return encode(lat,lon,1)
 
 def encodeLv2(lat, lon):
-	return encode(lat,lon,0)[0:6]
+	return encode(lat,lon,8)
 
 def encodeLv3(lat, lon):
-	return encode(lat,lon,0)
+	return encode(lat,lon,80)
 
 def encodeBase(lat,lon):
 	return encodeLv3(lat,lon)
 
 def encodeHalf(lat,lon):
-	return encode(lat,lon,1)
+	return encode(lat,lon,160)
 
 def encodeQuarter(lat,lon):
-	return encode(lat,lon,2)
+	return encode(lat,lon,320)
 
 def encodeEighth(lat,lon):
-	return encode(lat,lon,3)
+	return encode(lat,lon,640)
 
 def encodeUni10(lat,lon):
 	return encodeLv2(lat,lon)
 
 def encodeUni5(lat, lon):
-	return ''.join([str(i) for i in encode_uni5(lat,lon)])
+	return encode(lat,lon,16)
 
 def encodeUni2(lat, lon):
-	return ''.join([str(i) for i in encode_uni2(lat,lon)])
+	return encode(lat,lon,40)
+
+
+def neighbors(gridcode):
+	(lat,lon,base1)=_decode_c2i(gridcode)
+	ret = []
+	for i in ((0,-1),(0,1),(1,-1),(1,0),(1,1),(-1,-1),(-1,0),(-1,1)):
+		tlat=lat+i[0]
+		tlon=lon+i[1]
+		if tlat<0 or tlat>(90*base1):
+			continue
+		if tlon<0 or tlon>(100*base1):
+			continue
+		
+		ret.append(_encode_i2c(tlat,tlon,base1))
+	
+	return ret
+
+def expand(gridcode):
+	ret = neighbors(gridcode)
+	ret.append(gridcode)
+	return ret
