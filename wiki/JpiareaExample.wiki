@@ -16,3 +16,11 @@ Decoding. decode() returns a tuple of (latitude, longitude), which is a center c
 >>> jpiarea.bbox('53563332312')
 {'s': 156.4609375, 'e': 35.661458333333329, 'w': 35.658854166666664, 'n': 156.46484375}
 }}}
+
+When you want to get neighbor codes of a specific code, use neighbors(). expand() includes the center code together with neighbors().
+{{{
+>>> jpiarea.neighbors('53563332312')
+['53563332303', '53563332313', '53563332321', '53563332330', '53563332331', '53563332301', '53563332310', '53563332311']
+>>> jpiarea.expand('53563332312')
+['53563332303', '53563332313', '53563332321', '53563332330', '53563332331', '53563332301', '53563332310', '53563332311', '53563332312']
+}}}
