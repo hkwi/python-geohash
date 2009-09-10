@@ -46,10 +46,10 @@ def _encode_i2c(lat,lon,lat_length,lon_length):
 def encode(latitude, longitude, precision=12):
 	if latitude > 90.0 or latitude < -90.0:
 		raise Exception("invalid latitude.")
-	while longitude > 180.0:
-		longitude -= 360.0
 	while longitude < -180.0:
 		longitude += 360.0
+	while longitude >= 180.0:
+		longitude -= 360.0
 	
 	lat = (latitude+90.0)/180.0
 	lon = (longitude+180.0)/360.0
