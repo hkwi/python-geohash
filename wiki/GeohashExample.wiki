@@ -32,3 +32,5 @@ When you want to get neighbor codes of a specific code, use neighbors(). expand(
 >>> geohash.expand('ezs42')
 ['ezefr', 'ezs43', 'ezefx', 'ezs48', 'ezs49', 'ezefp', 'ezs40', 'ezs41', 'ezs42']
 }}}
+
+http://python-geohash.googlecode.com/svn/wiki/neighbors.png
