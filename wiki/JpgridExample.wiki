@@ -50,3 +50,11 @@ Decoding. decode() returns a tuple of (latitude, longitude), which is a center c
 >>> jpgrid.bbox('53563383622')
 {'s': 156.42343750000001, 'e': 35.659374999999997, 'w': 35.658333333333331, 'n': 156.42500000000001}
 }}}
+
+When you want to get neighbor codes of a specific code, use neighbors(). expand() includes the center code together with neighbors().
+{{{
+>>> jpgrid.neighbors('53394525')
+['53394524', '53394526', '53394534', '53394535', '53394536', '53394514', '53394515', '53394516']
+>>> jpgrid.expand('53394525')
+['53394524', '53394526', '53394534', '53394535', '53394536', '53394514', '53394515', '53394516', '53394525']
+}}}
