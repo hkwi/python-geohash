@@ -23,29 +23,14 @@ del i
 # 	t.reverse()
 # 	return ''.join(t)
 
-def encode(latitude, longitude, precision=12):
-	if latitude > 90.0 or latitude < -90.0:
-		raise Exception("invalid latitude.")
-	while longitude > 180.0:
-		longitude -= 360.0
-	while longitude < -180.0:
-		longitude += 360.0
-	
-	lat = (latitude+90.0)/180.0
-	lon = (longitude+180.0)/360.0
-	
-	lat_length=lon_length=precision*5/2
-	odd = False
-	if precision%2==1:
-		odd = True
-		lon_length+=1
-	
-	if odd:
-		b = int((1<<lat_length)*lat)
-		a = int((1<<lon_length)*lon)
+def _encode_i2c(lat,lon,lat_length,lon_length):
+	precision=(lat_length+lon_length)/5
+	if lat_length < lon_length:
+		a = lon
+		b = lat
 	else:
-		a = int((1<<lat_length)*lat)
-		b = int((1<<lon_length)*lon)
+		a = lat
+		b = lon
 	
 	ret = ''
 	while precision>0:
@@ -58,7 +43,27 @@ def encode(latitude, longitude, precision=12):
 	
 	return ret[::-1]
 
-def decode(hashcode, delta=False):
+def encode(latitude, longitude, precision=12):
+	if latitude > 90.0 or latitude < -90.0:
+		raise Exception("invalid latitude.")
+	while longitude > 180.0:
+		longitude -= 360.0
+	while longitude < -180.0:
+		longitude += 360.0
+	
+	lat = (latitude+90.0)/180.0
+	lon = (longitude+180.0)/360.0
+	
+	lat_length=lon_length=precision*5/2
+	if precision%2==1:
+		lon_length+=1
+	
+	lat = int((1<<lat_length)*lat)
+	lon = int((1<<lon_length)*lon)
+	
+	return _encode_i2c(lat,lon,lat_length,lon_length)
+
+def _decode_c2i(hashcode):
 	lon = 0
 	lat = 0
 	bit_length = 0
@@ -88,6 +93,11 @@ def decode(hashcode, delta=False):
 			lat_length+=3
 		
 		bit_length+=5
+	
+	return (lat,lon,lat_length,lon_length)
+
+def decode(hashcode, delta=False):
+	(lat,lon,lat_length,lon_length) = _decode_c2i(hashcode)
 	
 	lat = (lat<<1) + 1
 	lon = (lon<<1) + 1
@@ -106,40 +116,38 @@ def decode(hashcode, delta=False):
 def decode_exactly(hashcode):
 	return decode(hashcode, True)
 
+## hashcode operations below
+
 def bbox(hashcode):
-	lon = 0
-	lat = 0
-	bit_length = 0
-	lat_length = 0
-	lon_length = 0
-	for i in hashcode:
-		t = _base32_map[i]
-		if bit_length%2==0:
-			lon = lon<<3
-			lat = lat<<2
-			lon += (t>>2)&4
-			lat += (t>>2)&2
-			lon += (t>>1)&2
-			lat += (t>>1)&1
-			lon += t&1
-			lon_length+=3
-			lat_length+=2
-		else:
-			lon = lon<<2
-			lat = lat<<3
-			lat += (t>>2)&4
-			lon += (t>>2)&2
-			lat += (t>>1)&2
-			lon += (t>>1)&1
-			lat += t&1
-			lon_length+=2
-			lat_length+=3
-		
-		bit_length+=5
+	(lat,lon,lat_length,lon_length) = _decode_c2i(hashcode)
 	
 	ret={}
 	ret['n'] = 180.0*(lat+1)/(1<<lat_length) - 90.0
 	ret['s'] = 180.0*lat/(1<<lat_length) - 90.0
 	ret['e'] = 360.0*(lon+1)/(1<<lon_length) - 180.0
 	ret['w'] = 360.0*lon/(1<<lon_length) - 180.0
+	return ret
+
+def neighbors(hashcode):
+	(lat,lon,lat_length,lon_length) = _decode_c2i(hashcode)
+	ret = []
+	tlat = lat
+	for tlon in (lon-1, lon+1):
+		ret.append(_encode_i2c(tlat,tlon,lat_length,lon_length))
+	
+	tlat = lat+1
+	if not tlat >> lat_length:
+		for tlon in (lon-1, lon, lon+1):
+			ret.append(_encode_i2c(tlat,tlon,lat_length,lon_length))
+	
+	tlat = lat-1
+	if tlat > 0:
+		for tlon in (lon-1, lon, lon+1):
+			ret.append(_encode_i2c(tlat,tlon,lat_length,lon_length))
+	
+	return ret
+
+def expand(hashcode):
+	ret = neighbors(hashcode)
+	ret.append(hashcode)
 	return ret
