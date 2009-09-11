@@ -26,7 +26,7 @@ Suppose you have a geohash, and want to find nearby information. All you have to
 
 http://python-geohash.googlecode.com/svn/wiki/nearby.png
 
-You can use this technique in jpgrid and jpiarea, too.
+You can use this technique in jpgrid and jpiarea, too. jpgrid.expand() and jpiarea.expand() will return neighboring codes.
 
 = Google App Engine =
 When you have a geohash, you want to perform a query with string prefix match. 
