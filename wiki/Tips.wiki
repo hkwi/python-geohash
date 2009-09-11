@@ -13,5 +13,12 @@ Most computers calculate floating point numbers in 'float' or 'double' as define
 }}}
 
 This is off-topic but worth to note, when you display a floating number in decimal, use 17 digits for double representation. See also http://docs.python.org/tutorial/floatingpoint.html for detail.
+{{{
+>>> num=1.0/3.0
+>>> print repr(num)
+0.33333333333333331
+>>> print "%.16e" % (num,)
+3.3333333333333331e-001
+}}}
 
 = Nearby Location =
