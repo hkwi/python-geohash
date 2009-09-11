@@ -36,3 +36,5 @@ The most simple way is described at http://code.google.com/appengine/docs/python
 querycode = 'ezs42'
 db.GqlQuery("SELECT * FROM MyModel WHERE geohashcode >= :1 AND geohashcode < :2", querycode, querycode+"{")
 }}}
+
+This works fine because '{' (ascii code 123) is larger than 'z' (ascii code 122).
