@@ -44,5 +44,5 @@ Another approach is StringListProperty. In this case, you must extract all prefi
 m = MyModel()
 m.geohashcodes = ['e', 'ez', 'ezs', 'ezs4', 'ezs42']
 m.put()
-db.GqlQuery("SELECT * FROM MyModel WHERE geohashcode = :1", "ezs4")
+db.GqlQuery("SELECT * FROM MyModel WHERE geohashcodes = :1", "ezs4")
 }}}
