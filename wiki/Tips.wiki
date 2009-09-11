@@ -38,3 +38,11 @@ db.GqlQuery("SELECT * FROM MyModel WHERE geohashcode >= :1 AND geohashcode < :2"
 }}}
 
 This works fine because '{' (ascii code 123) is larger than 'z' (ascii code 122).
+
+Another approach is ListStringProperty. In this case, you must extract all prefix hashcode when you store the geohash. When you query, you can use any prefix.
+{{{
+m = MyModel()
+m.geohashcodes = ['e', 'ez', 'ezs', 'ezs4', 'ezs42']
+m.put()
+db.GqlQuery("SELECT * FROM MyModel WHERE geohashcode = :1", "ezs4")
+}}}
