@@ -52,3 +52,5 @@ This approach allows you to query nearby locations like this.
 {{{
 db.GqlQuery("SELECT * FROM MyModel WHERE geohashcodes IN :1", geohash.expand("ezs4"))
 }}}
+
+The latter seems to be slightly lighter in CPU consumption although storage amount gets bigger (based on the results when I tested on GAE with 10,000 entities 2009-09-11).
