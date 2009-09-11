@@ -2,7 +2,7 @@
 """
 Copyright (C) 2009 Hiroaki Kawai <kawai@iij.ad.jp>
 """
-__all__ = ['encode','decode','decode_exactly','bbox']
+__all__ = ['encode','decode','decode_exactly','bbox', 'neighbors', 'expand']
 
 _base32 = '0123456789bcdefghjkmnpqrstuvwxyz'
 _base32_map = {}
@@ -141,7 +141,7 @@ def neighbors(hashcode):
 			ret.append(_encode_i2c(tlat,tlon,lat_length,lon_length))
 	
 	tlat = lat-1
-	if tlat > 0:
+	if tlat >= 0:
 		for tlon in (lon-1, lon, lon+1):
 			ret.append(_encode_i2c(tlat,tlon,lat_length,lon_length))
 	
