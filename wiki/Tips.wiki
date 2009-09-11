@@ -1,13 +1,16 @@
 #summary tips
 
 = Precision =
-Most computer calculate floating point numbers in 'float' or 'double' as defined in [http://en.wikipedia.org/wiki/IEEE_754-2008 IEEE_754]. If your system use double, maximum geohash length is 21. Longer geohash are rounded when calculating in double. With float, use 10 chars. Python use 'double' for the representation of float(), so you may set precision at most 21.
+Most computers calculate floating point numbers in 'float' or 'double' as defined in [http://en.wikipedia.org/wiki/IEEE_754-2008 IEEE_754]. If your system use double, maximum geohash length is 21. Longer geohash is rounded when calculating in 'double'. With 'float', use 10 chars. Python use 'double' for the representation of float(), so you may set precision at most 21 chars.
 
 {{{
->>> geohash.encode(35, 135, 21)
+>>> geohash.encode(35, 135, precision=21)
 'xn0p0581b0bh2n0p0581b'
->>> geohash.encode(35, 135, 22)
+>>> geohash.encode(35, 135, precision=22)
 'xn0p0581b0bh2n0p0581b0'
->>> geohash.encode(35, 135, 50)
+>>> geohash.encode(35, 135, precision=50)
 'xn0p0581b0bh2n0p0581b00000000000000000000000000000'
 }}}
+
+
+= Nearby Location =
