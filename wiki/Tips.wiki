@@ -23,3 +23,5 @@ This is off-topic but worth noting, when you display a floating number in decima
 
 = Nearby Location =
 Suppose you have a geohash, and want to find nearby information. All you have to do is query a database with 8 geohashes. geohash.expand() is useful for this.
+
+http://python-geohash.googlecode.com/svn/wiki/nearby.png
