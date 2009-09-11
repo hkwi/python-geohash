@@ -46,3 +46,8 @@ m.geohashcodes = ['e', 'ez', 'ezs', 'ezs4', 'ezs42']
 m.put()
 db.GqlQuery("SELECT * FROM MyModel WHERE geohashcodes = :1", "ezs4")
 }}}
+
+This approach allows you to query nearby locations like this.
+{{{
+db.GqlQuery("SELECT * FROM MyModel WHERE geohashcodes IN :1", geohash.expand("ezs4"))
+}}}
