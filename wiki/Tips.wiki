@@ -28,5 +28,5 @@ http://python-geohash.googlecode.com/svn/wiki/nearby.png
 
 You can use this technique in jpgrid and jpiarea, too.
 
-= Google AppEngine =
+= Google App Engine =
 You want to perform a query with string prefix match.
