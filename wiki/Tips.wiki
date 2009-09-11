@@ -29,4 +29,10 @@ http://python-geohash.googlecode.com/svn/wiki/nearby.png
 You can use this technique in jpgrid and jpiarea, too.
 
 = Google App Engine =
-You want to perform a query with string prefix match.
+When you have a geohash, you want to perform a query with string prefix match. 
+
+The most simple way is described at http://code.google.com/appengine/docs/python/datastore/queriesandindexes.html#Introducing_Indexes . If you use geohash, you can query like this:
+{{{
+querycode = 'ezs42'
+db.GqlQuery("SELECT * FROM MyModel WHERE geohashcode >= :1 AND geohashcode < :2", querycode, querycode+"{")
+}}}
