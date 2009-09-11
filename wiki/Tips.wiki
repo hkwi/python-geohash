@@ -1,0 +1,13 @@
+#summary tips
+
+= Precision =
+Most computer calculate floating point numbers in 'float' or 'double'. If your system use double, maximum geohash length is 21. Longer geohash are rounded when calculating in double. With float, use 10 chars. 
+
+{{{
+>>> geohash.encode(35, 135, 21)
+'xn0p0581b0bh2n0p0581b'
+>>> geohash.encode(35, 135, 22)
+'xn0p0581b0bh2n0p0581b0'
+>>> geohash.encode(35, 135, 50)
+'xn0p0581b0bh2n0p0581b00000000000000000000000000000'
+}}}
