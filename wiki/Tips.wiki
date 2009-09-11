@@ -1,7 +1,7 @@
 #summary tips
 
 = Precision =
-Most computer calculate floating point numbers in 'float' or 'double'. If your system use double, maximum geohash length is 21. Longer geohash are rounded when calculating in double. With float, use 10 chars. 
+Most computer calculate floating point numbers in 'float' or 'double' as defined in [http://en.wikipedia.org/wiki/IEEE_754-2008 IEEE_754]. If your system use double, maximum geohash length is 21. Longer geohash are rounded when calculating in double. With float, use 10 chars. Python use 'double' for the representation of float(), so you may set precision at most 21.
 
 {{{
 >>> geohash.encode(35, 135, 21)
