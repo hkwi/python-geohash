@@ -30,6 +30,7 @@ http://python-geohash.googlecode.com/svn/wiki/nearby.png
 You can use this technique in jpgrid and jpiarea, too. jpgrid.expand() and jpiarea.expand() will return neighboring codes.
 
 = Google App Engine =
+== string prefix match ==
 When you have a geohash, you want to perform a query with string prefix match. 
 
 The simplest way is described at http://code.google.com/appengine/docs/python/datastore/queriesandindexes.html#Introducing_Indexes . In case you use geohash, you can query like this:
