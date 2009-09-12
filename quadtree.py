@@ -28,11 +28,14 @@ def encode(lat,lon,precision=12):
 	b = 1<<precision
 	return _encode_i2c(int(b*(lat+90.0)/180.0), int(b*(lon+180.0)/360.0), precision)
 
-def decode(treecode):
+def decode(treecode, delta=False):
 	(lat,lon,bitlength) = _decode_c2i(treecode)
 	lat = (lat<<1)+1
 	lon = (lon<<1)+1
 	b = 1<<(bitlength+1)
+	if delta:
+		return 180.0*lat/b-90.0, 360.0*lon/b-180.0, 180.0/b, 360.0/b
+	
 	return 180.0*lat/b-90.0, 360.0*lon/b-180.0
 
 def bbox(treecode):
