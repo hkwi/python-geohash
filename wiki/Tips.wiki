@@ -66,5 +66,6 @@ for o in range(len(1,m.geohashcode)):
   for c in geohash.expand(m.geohashcode[0:o]):
     m.nearby.append(c)
 m.put()
-db.GqlQuery("SELECT * FROM MyModel WHERE bearby = :1", "ezs4")
+db.GqlQuery("SELECT * FROM MyModel WHERE nearby = :1", 'ezs4')
+db.GqlQuery("SELECT * FROM MyModel WHERE nearby = :1", 'ezef')
 }}}
