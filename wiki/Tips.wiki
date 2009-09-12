@@ -29,6 +29,16 @@ http://python-geohash.googlecode.com/svn/wiki/nearby.png
 
 You can use this technique in jpgrid and jpiarea, too. jpgrid.expand() and jpiarea.expand() will return neighboring codes.
 
+= Code =
+There're four codes of geohash, quadtree, jpgrid and jpiarea in this library. I'd like to describe the difference to help you choose the best one for your purpose.
+
+If you already have a grid data which is based on one of those, use the same one. If you're going to handle the data of Japan's goverment census, use jpgrid. Use jpiare for NTT DoCoMo's iArea. 
+
+Because of the coding algorithms, the code length and grid size are in inverse proportion. 
+Geohash has large steps, and can encode small grid size in short code length. On the other hand, quadtree has small steps, and consume long code length to point the same grid, but this means you can control more flexible over the grid size. If you felt the geohash steps are too large, you might want to migrate to quadtree.
+
+One more difference is the shape of the grid. When the latitudes is around 0 degree, the grid is always square in quadtree, but if latitude is around 60 degree, it is always not a square but a rectangle. With geohash of which the length is odd, the shape is square when latitude is around 60 degree.
+
 = Google App Engine =
 == String Prefix Match ==
 When you have a geohash, you want to perform a query with string prefix match. 
