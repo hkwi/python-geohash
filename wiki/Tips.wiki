@@ -69,3 +69,5 @@ m.put()
 db.GqlQuery("SELECT * FROM MyModel WHERE nearby = :1", 'ezs4')
 db.GqlQuery("SELECT * FROM MyModel WHERE nearby = :1", 'ezef')
 }}}
+
+Another approach is described in http://code.google.com/appengine/articles/geosearch.html . 
