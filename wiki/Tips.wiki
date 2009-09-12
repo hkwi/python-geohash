@@ -42,7 +42,7 @@ http://python-geohash.googlecode.com/svn/wiki/coding.png
 One more difference is the shape of the grid. When the latitudes is around 0 degree, the grid is always square in quadtree, but if latitude is around 60 degree, it is always not a square but a rectangle. With geohash of which the length is odd, the shape is square when latitude is around 60 degree.
 
 = Spatial Index =
-You might hear [http://en.wikipedia.org/wiki/R-tree R-TREE] or PR-TREE as a spatial index. Geohash prefix match is almost the same algorithm speed with R-TREE. The difference is data balancing. So you don't have to worry about that.
+You might hear [http://en.wikipedia.org/wiki/R-tree R-TREE] or PR-TREE as a spatial index. Geohash prefix match is almost the same algorithm of tree search. The difference is data balancing. So you don't have to worry about that.
 
 = Google App Engine =
 == String Prefix Match ==
