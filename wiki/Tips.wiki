@@ -66,6 +66,10 @@ for o in range(len(1,m.geohashcode)):
   for c in geohash.expand(m.geohashcode[0:o]):
     m.nearby.append(c)
 m.put()
+}}}
+
+You simply query nearby entities like this. Choose the size of distance by the length of code, shorter geocode covers large area.
+{{{
 db.GqlQuery("SELECT * FROM MyModel WHERE nearby = :1", 'ezs4')
 db.GqlQuery("SELECT * FROM MyModel WHERE nearby = :1", 'ezef')
 }}}
