@@ -57,7 +57,7 @@ db.GqlQuery("SELECT * FROM MyModel WHERE geohashcodes IN :1", geohash.expand("ez
 If you want to find entities in a specific grid, the latter seems to be slightly lighter in CPU consumption although storage amount gets bigger (based on the results when I tested on GAE with 10,000 entities in 2009-09-11).
 
 == Nearby Locations ==
-Querying entities in nearby grids, you can do like this.
+Querying entities in nearby grids, you can do like this in storing time.
 {{{
 m = MyModel()
 m.geohashcode = 'ezs42'
