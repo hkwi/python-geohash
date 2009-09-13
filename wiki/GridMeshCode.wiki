@@ -1,5 +1,5 @@
 #summary Grid mesh code overview.
-#labels Featured,地域メッシュ,日本,NTTDoCoMo,iエリア
+#labels Phase-Design,Featured,日本,NTTDoCoMo,iエリア,地域メッシュ
 
 Japan's government utilize [http://www.stat.go.jp/data/mesh/ grid square mesh code] for census and other purposes. The specificateion is documented as JIS C 6304, and revised to JIS X 0410. NTT DoCoMo use modified version of that grid code for [http://www.nttdocomo.co.jp/service/imode/make/content/iarea/domestic/index.html Open i-Area in Japan].a
 
