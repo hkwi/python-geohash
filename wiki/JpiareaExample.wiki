@@ -1,4 +1,5 @@
 #summary jpiarea usage example
+#labels Phase-Implementation,example
 
 Encoding.
 {{{
