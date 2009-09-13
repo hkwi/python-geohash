@@ -83,7 +83,7 @@ for o in range(len(1,m.geohashcode)):
 m.put()
 }}}
 
-You simply query nearby entities like this because querying against StringListProperty works as an [http://en.wikipedia.org/wiki/Inverted_index inverted index]. Choose the size of distance by the length of code, shorter geocode covers large area.
+You simply query nearby entities like this because querying against StringListProperty works as an [http://en.wikipedia.org/wiki/Inverted_index inverted index]. Choose the size of distance by the length of code, shorter geocode covers large area. You never have to perform inequality.
 {{{
 db.GqlQuery("SELECT * FROM MyModel WHERE nearby = :1", 'ezs4')
 db.GqlQuery("SELECT * FROM MyModel WHERE nearby = :1", 'ezef')
