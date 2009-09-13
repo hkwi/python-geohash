@@ -1,5 +1,5 @@
 #summary geohash usage examples
-#labels geohash,featured
+#labels geohash,featured,example
 
 Encoding.
 {{{
