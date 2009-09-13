@@ -1,5 +1,5 @@
 #summary geohash usage examples
-#labels geohash,featured,example
+#labels Phase-Implementation,Featured,example
 
 Encoding.
 {{{
