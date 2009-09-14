@@ -23,7 +23,7 @@ This is off-topic but worth noting, when you display a floating number in decima
 }}}
 
 Longer code can be represent more precise location.
-http://python-geohash.googlecode.com/svn/wiki/nearby.png
+http://python-geohash.googlecode.com/svn/wiki/precision.png
 
 
 = Nearby Location =
