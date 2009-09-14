@@ -22,7 +22,7 @@ This is off-topic but worth noting, when you display a floating number in decima
 3.3333333333333331e-001
 }}}
 
-Longer code can be represent more precise location. The following chart shows the precision in meter. Choose the length what you want in querying nearby locations. Please note, the length you represent a location is one, and the length in query is another. You don't have to store short geohash to point the location because you use that short geohash for querying. Store long geohash, that you can query with short prefix.
+Longer code can be represent more precise location. The following chart shows the precision in meter. Choose the length what you want in querying nearby locations. Please note, the length you represent a location is one, and the length in query is another. You don't have to store short geohash to point the location because you use that short geohash for querying. Store long geohash, and you can query with short prefix.
 http://python-geohash.googlecode.com/svn/wiki/precision.png
 
 
