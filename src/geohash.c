@@ -60,6 +60,7 @@ static PyObject *py_geohash_encode(PyObject *self, PyObject *args) {
 	if(!PyArg_ParseTuple(args, "dd", &latitude, &longitude)) return NULL;
 	
 	if((ret=geohash_encode(latitude,longitude,hashcode,24))!=GEOHASH_OK){
+		if(ret==GEOHASH_NOTSUPPORTED) PyErr_SetString(PyExc_EnvironmentError, "unknown endian");
 		return NULL;
 	}
 	return Py_BuildValue("s",hashcode);
@@ -75,14 +76,114 @@ static PyObject *py_geohash_decode(PyObject *self, PyObject *args) {
 	
 	codelen = strlen(hashcode);
 	if((ret=geohash_decode(hashcode,codelen,&latitude,&longitude))!=GEOHASH_OK){
+		PyErr_SetString(PyExc_ValueError,"geohash code is [0123456789bcdefghjkmnpqrstuvwxyz]+");
 		return NULL;
 	}
 	return Py_BuildValue("(ddii)",latitude,longitude, codelen/2*5+codelen%2*2, codelen/2*5+codelen%2*3);
 }
 
+static PyObject *py_geohash_neighbors(PyObject *self, PyObject *args) {
+	static const unsigned char mapA[128] = {
+		  '@',  '|',  '|',  '|',  '|',  '|',  '|',  '|',
+		  '|',  '|',  '|',  '|',  '|',  '|',  '|',  '|',
+		  '|',  '|',  '|',  '|',  '|',  '|',  '|',  '|',
+		  '|',  '|',  '|',  '|',  '|',  '|',  '|',  '|',
+		  '|',  '|',  '|',  '|',  '|',  '|',  '|',  '|',
+		  '|',  '|',  '|',  '|',  '|',  '|',  '|',  '|',
+		    0,    1,    2,    3,    4,    5,    6,    7,
+		    8,    9,  '|',  '|',  '|',  '|',  '|',  '|',
+		  '|',  '|', 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
+		 0x10,  '|', 0x11, 0x12,  '|', 0x13, 0x14,  '|',
+		 0x15, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B, 0x1C,
+		 0x1D, 0x1E, 0x1F,  '|',  '|',  '|',  '|',  '|',
+		  '|',  '|', 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
+		 0x10,  '|', 0x11, 0x12,  '|', 0x13, 0x14,  '|',
+		 0x15, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B, 0x1C,
+		 0x1D, 0x1E, 0x1F,  '|',  '|',  '|',  '|',  '|',
+	};
+	static const char rmap[32]="0123456789bcdefghjkmnpqrstuvwxyz";
+	uint64_t lat, lon;
+	char *hashcode;
+	if(!PyArg_ParseTuple(args, "s", &hashcode)) return NULL;
+	
+	int length = strlen(hashcode);
+	if(length>24){ length=24; } // round if the hashcode is too long (over 64bit)
+	lat=lon=0;
+	int cshift=0;
+	while(cshift<length){
+		unsigned char o1 = mapA[(unsigned char)hashcode[cshift]];
+		if(o1=='@'){ break; }
+		if(o1=='|'){
+			PyErr_SetString(PyExc_ValueError,"geohash code is [0123456789bcdefghjkmnpqrstuvwxyz]+");
+			return NULL;
+		}
+		if(cshift%2==0){
+			lon = (lon<<3) | ((o1&0x10)>>2) | ((o1&0x04)>>1) | (o1&0x01);
+			lat = (lat<<2) | ((o1&0x08)>>2) | ((o1&0x02)>>1);
+		}else{
+			lon = (lon<<2) | ((o1&0x08)>>2) | ((o1&0x02)>>1);
+			lat = (lat<<3) | ((o1&0x10)>>2) | ((o1&0x04)>>1) | (o1&0x01);
+		}
+		cshift++;
+	}
+	
+	char* buffer = (char*)malloc(8*(length+1)*sizeof(char));
+	if(buffer==NULL){
+		PyErr_NoMemory();
+		return NULL;
+	}
+	int al=-1;
+	int au=2;
+	if(lat==0){
+		al=0; au=2;
+	}else if(lat+1==(1<<(length/2*5+length%2*2))){
+		al=-1; au=1;
+	}
+	int blen=length+1; // block length
+	int aoff=0;
+	int a,o;
+	for(a=al;a<au;a++){
+		for(o=-1;o<2;o++){
+			if(a==0 && o==0) continue;
+			uint64_t ta = lat+a;
+			uint64_t to = lon+o;
+			buffer[blen*aoff+length]='\0';
+			int cpos = length-1;
+			while(cpos>=0){
+				unsigned char z;
+				if(cpos%2==0){
+					z = ((to&4)<<2)|((to&2)<<1)|(to&1)|((ta&2)<<2)|((ta&1)<<1);
+					buffer[blen*aoff+cpos]=rmap[z];
+					ta=ta>>2;
+					to=to>>3;
+				}else{
+					z = ((ta&4)<<2)|((ta&2)<<1)|(ta&1)|((to&2)<<2)|((to&1)<<1);
+					buffer[blen*aoff+cpos]=rmap[z];
+					ta=ta>>3;
+					to=to>>2;
+				}
+				cpos--;
+			}
+			aoff++;
+		}
+	}
+	PyObject *ret;
+	if(lat==0){
+		ret= Py_BuildValue("[sssss]",&buffer[0],&buffer[blen],&buffer[blen*2],&buffer[blen*3],&buffer[blen*4]);
+	}else if(lat+1==(1<<(cshift/2*5+cshift%2*2))){
+		ret= Py_BuildValue("[sssss]",&buffer[0],&buffer[blen],&buffer[blen*2],&buffer[blen*3],&buffer[blen*4]);
+	}else{
+		ret= Py_BuildValue("[ssssssss]",&buffer[0],&buffer[blen],&buffer[blen*2],&buffer[blen*3],
+			&buffer[blen*4],&buffer[blen*5],&buffer[blen*6],&buffer[blen*7]);
+	}
+	free(buffer);
+	return ret;
+}
+
 static PyMethodDef GeohashMethods[] = {
 	{"encode", py_geohash_encode, METH_VARARGS, "geohash encoding."},
 	{"decode", py_geohash_decode, METH_VARARGS, "geohash decoding."},
+	{"neighbors", py_geohash_neighbors, METH_VARARGS, "geohash neighbor codes",},
 	{NULL, NULL, 0, NULL}
 };
 
