@@ -2,13 +2,22 @@
 #include <math.h>
 #include <stdint.h>
 #include "geohash.h"
+#include <sys/param.h>
 
-#if !defined(__LITTLE_ENDIAN__) && !defined(__BIG_ENDIAN__)
-#ifdef __BYTE_ORDER
+#if !defined(__LITTLE_ENDIAN__) && !defined(__BIG_ENDIAN__) /* MacOS X style */
+#ifdef __BYTE_ORDER /* Linux style */
 # if __BYTE_ORDER == __LITTLE_ENDIAN
 #  define __LITTLE_ENDIAN__
 # endif
 # if __BYTE_ORDER == __BIG_ENDIAN
+#  define __BIG_ENDIAN__
+# endif
+#endif
+#ifdef BYTE_ORDER /* MinGW style */
+# if BYTE_ORDER == LITTLE_ENDIAN
+#  define __LITTLE_ENDIAN__
+# endif
+# if BYTE_ORDER == BIG_ENDIAN
 #  define __BIG_ENDIAN__
 # endif
 #endif
@@ -39,6 +48,49 @@
 #define B0 7
 #endif
 
+
+#ifdef PYTHON_MODULE
+#include <Python.h>
+static PyObject *py_geohash_encode(PyObject *self, PyObject *args) {
+	double latitude;
+	double longitude;
+	char hashcode[24];
+	int ret = GEOHASH_OK;
+	
+	if(!PyArg_ParseTuple(args, "dd", &latitude, &longitude)) return NULL;
+	
+	if((ret=geohash_encode(latitude,longitude,hashcode,24))!=GEOHASH_OK){
+		return NULL;
+	}
+	return Py_BuildValue("s",hashcode);
+}
+static PyObject *py_geohash_decode(PyObject *self, PyObject *args) {
+	double latitude;
+	double longitude;
+	char *hashcode;
+	int codelen=0;
+	int ret = GEOHASH_OK;
+	
+	if(!PyArg_ParseTuple(args, "s", &hashcode)) return NULL;
+	
+	codelen = strlen(hashcode);
+	if((ret=geohash_decode(hashcode,codelen,&latitude,&longitude))!=GEOHASH_OK){
+		return NULL;
+	}
+	return Py_BuildValue("(ddii)",latitude,longitude, codelen/2*5+codelen%2*2, codelen/2*5+codelen%2*3);
+}
+
+static PyMethodDef GeohashMethods[] = {
+	{"encode", py_geohash_encode, METH_VARARGS, "geohash encoding."},
+	{"decode", py_geohash_decode, METH_VARARGS, "geohash decoding."},
+	{NULL, NULL, 0, NULL}
+};
+
+PyMODINIT_FUNC init_geohash(void){
+	(void)Py_InitModule("_geohash", GeohashMethods);
+}
+#endif /* PYTHON_MODULE */
+
 int geohash_encode(double latitude, double longitude, char* r, size_t capacity){
 	static const char* map="0123456789bcdefghjkmnpqrstuvwxyz";
 	union {
@@ -50,13 +102,14 @@ int geohash_encode(double latitude, double longitude, char* r, size_t capacity){
 	unsigned short lat_exp, lon_exp;
 	uint16_t tmp;
 	
-#ifdef __UNSUPPORTED_ENDIAN__
-	return GEOHASH_NOTSUPPORTED;
-#endif
-	
 	if(capacity<23){
 		return GEOHASH_OVERFLOW;
 	}
+#ifdef __UNSUPPORTED_ENDIAN__
+	r[0]='\0';
+	return GEOHASH_NOTSUPPORTED;
+#endif
+	
 	lat.d = (latitude+90.0)/180.0;
 	lon.d = (longitude+180.0)/360.0;
 	
@@ -71,7 +124,6 @@ int geohash_encode(double latitude, double longitude, char* r, size_t capacity){
 	if(lat_exp<1022){ lat.i64 = lat.i64>>(1022-lat_exp); }
 	if(lon_exp<1022){ lon.i64 = lon.i64>>(1022-lon_exp); }
 	
-	r[22]='\0';
 	tmp = 0;
 	tmp |= ((lon.s[B6]&0x10)<<5) | ((lat.s[B6]&0x10)<<4);
 	tmp |= ((lon.s[B6]&0x08)<<4) | ((lat.s[B6]&0x08)<<3);
@@ -158,9 +210,13 @@ int geohash_encode(double latitude, double longitude, char* r, size_t capacity){
 	tmp |= ((lon.s[B0]&0x01)<<5) | ((lat.s[B0]&0x01)<<4);
 	r[20]=map[tmp>>5];
 	r[21]=map[tmp&0x1F];
+	r[22]='\0';
 	return GEOHASH_OK;
 }
 
+/*
+   (latitude, longitude) will be that of south west point.
+*/
 int geohash_decode(char* r, size_t length, double *latitude, double *longitude){
 	static const unsigned char map[128] = {
 		  '@',  '|',  '|',  '|',  '|',  '|',  '|',  '|',
@@ -186,11 +242,11 @@ int geohash_decode(char* r, size_t length, double *latitude, double *longitude){
 	base=lat=lon=0;
 	while(cshift<length){
 		unsigned char o1,o2;
-		o1 = map[r[cshift]];
+		o1 = map[(unsigned char)r[cshift]];
 		if(o1=='@'){ break; }
 		cshift++;
 		if(cshift<length){
-			o2 = map[r[cshift]];
+			o2 = map[(unsigned char)r[cshift]];
 		}else{
 			o2 = 0;
 		}
