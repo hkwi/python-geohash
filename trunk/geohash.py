@@ -159,6 +159,8 @@ def bbox(hashcode):
 	return ret
 
 def neighbors(hashcode):
+	if _geohash:
+		return _geohash.neighbors(hashcode)
 	(lat,lon,lat_length,lon_length) = _decode_c2i(hashcode)
 	ret = []
 	tlat = lat
