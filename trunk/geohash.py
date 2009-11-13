@@ -57,7 +57,10 @@ def encode(latitude, longitude, precision=12):
 		longitude -= 360.0
 	
 	if _geohash:
-		return _geohash.encode(latitude,longitude)[0:precision]
+		basecode=_geohash.encode(latitude,longitude)
+		if len(basecode)>precision:
+			return basecode[0:precision]
+		return basecode+'0'*(precision-len(basecode))
 	
 	lat = (latitude+90.0)/180.0
 	lon = (longitude+180.0)/360.0
@@ -109,9 +112,9 @@ def decode(hashcode, delta=False):
 	decode a hashcode and get center coordinate, and distance between center and outer border
 	'''
 	if _geohash:
-		(lat,lon,lat_length,lon_length) = _geohash.decode(hashcode)
-		latitude_delta = 180.0/(2<<lat_length)
-		longitude_delta = 360.0/(2<<lon_length)
+		(lat,lon,lat_bits,lon_bits) = _geohash.decode(hashcode)
+		latitude_delta = 180.0/(2<<lat_bits)
+		longitude_delta = 360.0/(2<<lon_bits)
 		latitude = lat + latitude_delta
 		longitude = lon + longitude_delta
 		if delta:
@@ -144,9 +147,9 @@ def bbox(hashcode):
 	decode a hashcode and get north, south, east and west border.
 	'''
 	if _geohash:
-		(lat,lon,lat_length,lon_length) = _geohash.decode(hashcode)
-		latitude_delta = 180.0/(1<<lat_length)
-		longitude_delta = 360.0/(1<<lon_length)
+		(lat,lon,lat_bits,lon_bits) = _geohash.decode(hashcode)
+		latitude_delta = 180.0/(1<<lat_bits)
+		longitude_delta = 360.0/(1<<lon_bits)
 		return {'s':lat,'e':lon,'n':lat+latitude_delta,'w':lon+longitude_delta}
 	
 	(lat,lon,lat_length,lon_length) = _decode_c2i(hashcode)
@@ -159,7 +162,7 @@ def bbox(hashcode):
 	return ret
 
 def neighbors(hashcode):
-	if _geohash:
+	if _geohash and len(hashcode)<25:
 		return _geohash.neighbors(hashcode)
 	(lat,lon,lat_length,lon_length) = _decode_c2i(hashcode)
 	ret = []
