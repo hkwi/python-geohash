@@ -62,8 +62,8 @@ def encode(latitude, longitude, precision=12):
 			return basecode[0:precision]
 		return basecode+'0'*(precision-len(basecode))
 	
-	lat = (latitude+90.0)/180.0
-	lon = (longitude+180.0)/360.0
+	lat = latitude/180.0+0.5
+	lon = longitude/360.0+0.5
 	
 	lat_length=lon_length=precision*5/2
 	if precision%2==1:
@@ -128,8 +128,8 @@ def decode(hashcode, delta=False):
 	lat_length += 1
 	lon_length += 1
 	
-	latitude  = 180.0*lat/(1<<lat_length) - 90.0
-	longitude = 360.0*lon/(1<<lon_length) - 180.0
+	latitude  = 180.0*(lat-(1<<(lat_length-1)))/(1<<lat_length)
+	longitude = 360.0*(lon-(1<<(lon_length-1)))/(1<<lon_length)
 	if delta:
 		latitude_delta  = 180.0/(1<<lat_length)
 		longitude_delta = 360.0/(1<<lon_length)
@@ -155,10 +155,10 @@ def bbox(hashcode):
 	(lat,lon,lat_length,lon_length) = _decode_c2i(hashcode)
 	
 	ret={}
-	ret['n'] = 180.0*(lat+1)/(1<<lat_length) - 90.0
-	ret['s'] = 180.0*lat/(1<<lat_length) - 90.0
-	ret['e'] = 360.0*(lon+1)/(1<<lon_length) - 180.0
-	ret['w'] = 360.0*lon/(1<<lon_length) - 180.0
+	ret['n'] = 180.0*(lat+1-(1<<(lat_length-1)))/(1<<lat_length)
+	ret['s'] = 180.0*(lat-(1<<(lat_length-1)))/(1<<lat_length)
+	ret['e'] = 360.0*(lon+1-(1<<(lon_length-1)))/(1<<lon_length)
+	ret['w'] = 360.0*(lon-(1<<(lon_length-1)))/(1<<lon_length)
 	return ret
 
 def neighbors(hashcode):
