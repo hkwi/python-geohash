@@ -29,6 +29,7 @@
 #endif
 
 #ifdef __LITTLE_ENDIAN__
+#define B7 7
 #define B6 6
 #define B5 5
 #define B4 4
@@ -39,6 +40,7 @@
 #endif
 
 #ifdef __BIG_ENDIAN__
+#define B7 0
 #define B6 1
 #define B5 2
 #define B4 3
@@ -192,6 +194,9 @@ PyMODINIT_FUNC init_geohash(void){
 }
 #endif /* PYTHON_MODULE */
 
+/*
+  latitude must be in [-90.0, 90.0) and longitude must be in [-180.0 180.0)
+*/
 int geohash_encode(double latitude, double longitude, char* r, size_t capacity){
 	static const char* map="0123456789bcdefghjkmnpqrstuvwxyz";
 	union {
@@ -211,8 +216,8 @@ int geohash_encode(double latitude, double longitude, char* r, size_t capacity){
 	return GEOHASH_NOTSUPPORTED;
 #endif
 	
-	lat.d = (latitude+90.0)/180.0;
-	lon.d = (longitude+180.0)/360.0;
+	lat.d = latitude/180.0 + 0.5;
+	lon.d = longitude/360.0 + 0.5;
 	
 	lat.d = lat.d-floor(lat.d);
 	lon.d = lon.d-floor(lon.d);
@@ -222,6 +227,7 @@ int geohash_encode(double latitude, double longitude, char* r, size_t capacity){
 	
 	lat.i64 = (lat.i64 & 0xFFFFFFFFFFFFFLL) | 0x10000000000000LL;
 	lon.i64 = (lon.i64 & 0xFFFFFFFFFFFFFLL) | 0x10000000000000LL;
+	
 	if(lat_exp<1022){ lat.i64 = lat.i64>>(1022-lat_exp); }
 	if(lon_exp<1022){ lon.i64 = lon.i64>>(1022-lon_exp); }
 	
@@ -338,29 +344,78 @@ int geohash_decode(char* r, size_t length, double *latitude, double *longitude){
 		 0x1D, 0x1E, 0x1F,  '|',  '|',  '|',  '|',  '|',
 	};
 	int cshift=0;
-	uint64_t base, lat, lon;
-	if(length>24){ length=24; } // round if the hashcode is too long (over 64bit)
-	base=lat=lon=0;
+	if(length>25){ length=25; } // round if the hashcode is too long (over 64bit)
+	union {
+		double d; // assuming IEEE 754-1985 binary64. This might not be true on some CPU (I don't know which).
+		unsigned char s[8];
+		// formally, we should use unsigned char for type-punning (see C99 ISO/IEC 9899:201x spec 6.2.6)
+		uint64_t i64;
+	} lat, lon;
+	lat.i64 = lon.i64 = 0;
 	while(cshift<length){
-		unsigned char o1,o2;
-		o1 = map[(unsigned char)r[cshift]];
+		unsigned char o1 = map[(unsigned char)r[cshift]];
 		if(o1=='@'){ break; }
-		cshift++;
-		if(cshift<length){
-			o2 = map[(unsigned char)r[cshift]];
-		}else{
-			o2 = 0;
-		}
-		cshift++;
-		if(o1=='|' || o2=='|'){
+		if(o1=='|'){
+			PyErr_SetString(PyExc_ValueError,"geohash code is [0123456789bcdefghjkmnpqrstuvwxyz]+");
 			return GEOHASH_INVALIDCODE;
 		}
-		lon = lon<<5 | (o1&0x10)<<0 | (o1&0x04)<<1 | (o1&0x01)<<2 | (o2&0x08)>>2 | (o2&0x02)>>1;
-		lat = lat<<5 | (o1&0x08)<<1 | (o1&0x02)<<2 | (o2&0x10)>>2 | (o2&0x04)>>1 | (o2&0x01)>>0;
-		if(o2=='@'){ break; }
+		if(cshift%2==0){
+			lon.i64 = (lon.i64<<3) | ((o1&0x10)>>2) | ((o1&0x04)>>1) | (o1&0x01);
+			lat.i64 = (lat.i64<<2) | ((o1&0x08)>>2) | ((o1&0x02)>>1);
+		}else{
+			lon.i64 = (lon.i64<<2) | ((o1&0x08)>>2) | ((o1&0x02)>>1);
+			lat.i64 = (lat.i64<<3) | ((o1&0x10)>>2) | ((o1&0x04)>>1) | (o1&0x01);
+		}
+		cshift++;
 	}
-	base = 1LL<<(5*cshift/2);
-	*latitude = 180.0*(double)lat/(double)base - 90.0;
-	*longitude = 360.0*(double)lon/(double)base - 180.0;
+	
+	int lat_neg=0,lon_neg=0;
+	uint64_t lat_h,lon_h;
+	lat_h=1LL<<(5*(cshift/2) + 2*(cshift%2)-1);
+	lon_h=1LL<<(5*(cshift/2) + 3*(cshift%2)-1);
+	if(lat.i64>=lat_h){
+		lat.i64=lat.i64-lat_h;
+	}else{
+		lat.i64=lat_h-lat.i64;
+		lat_neg=1;
+	}
+	if(lon.i64>=lon_h){
+		lon.i64=lon.i64-lon_h;
+	}else{
+		lon.i64=lon_h-lon.i64;
+		lon_neg=1;
+	}
+	
+	// rounding to double representation
+	int i,lat_i=0,lon_i=0;
+	for(i=0;i<64;i++){
+		if(lat.i64>>i){ lat_i=i; }
+		if(lon.i64>>i){ lon_i=i; }
+	}
+	
+	if(lat_i>52){
+		lat.i64=lat.i64>>(lat_i-52);
+	}else{
+		lat.i64=lat.i64<<(52-lat_i);
+	}
+	if(lat_i!=0){
+		lat_i = 1023 + lat_i - 5*(cshift/2) - 2*(cshift%2);
+	}
+	if(lon_i>52){
+		lon.i64=lon.i64>>(lon_i-52);
+	}else{
+		lon.i64=lon.i64<<(52-lon_i);
+	}
+	if(lon_i!=0){
+		lon_i = 1023 + lon_i - 5*(cshift/2) - 3*(cshift%2);
+	}
+	
+	lat.s[B7]=(lat_neg<<7)|((lat_i>>4)&0x7F);
+	lon.s[B7]=(lon_neg<<7)|((lon_i>>4)&0x7F);
+	lat.s[B6]=((lat_i<<4)&0xF0)|(lat.s[B6]&0x0F);
+	lon.s[B6]=((lon_i<<4)&0xF0)|(lon.s[B6]&0x0F);
+	
+	*latitude = 180.0*lat.d;
+	*longitude = 360.0*lon.d;
 	return GEOHASH_OK;
 }
