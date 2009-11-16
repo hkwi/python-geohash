@@ -56,12 +56,12 @@
 static PyObject *py_geohash_encode(PyObject *self, PyObject *args) {
 	double latitude;
 	double longitude;
-	char hashcode[24];
+	char hashcode[28];
 	int ret = GEOHASH_OK;
 	
 	if(!PyArg_ParseTuple(args, "dd", &latitude, &longitude)) return NULL;
 	
-	if((ret=geohash_encode(latitude,longitude,hashcode,24))!=GEOHASH_OK){
+	if((ret=geohash_encode(latitude,longitude,hashcode,28))!=GEOHASH_OK){
 		if(ret==GEOHASH_NOTSUPPORTED) PyErr_SetString(PyExc_EnvironmentError, "unknown endian");
 		return NULL;
 	}
@@ -201,14 +201,14 @@ int geohash_encode(double latitude, double longitude, char* r, size_t capacity){
 	static const char* map="0123456789bcdefghjkmnpqrstuvwxyz";
 	union {
 		double d; // assuming IEEE 754-1985 binary64. This might not be true on some CPU (I don't know which).
-		unsigned char s[8];
+//		unsigned char s[8];
 		// formally, we should use unsigned char for type-punning (see C99 ISO/IEC 9899:201x spec 6.2.6)
 		uint64_t i64;
 	} lat, lon;
 	unsigned short lat_exp, lon_exp;
 	uint16_t tmp;
 	
-	if(capacity<23){
+	if(capacity<27){
 		return GEOHASH_OVERFLOW;
 	}
 #ifdef __UNSUPPORTED_ENDIAN__
@@ -216,108 +216,66 @@ int geohash_encode(double latitude, double longitude, char* r, size_t capacity){
 	return GEOHASH_NOTSUPPORTED;
 #endif
 	
-	lat.d = latitude/180.0 + 0.5;
-	lon.d = longitude/360.0 + 0.5;
-	
-	lat.d = lat.d-floor(lat.d);
-	lon.d = lon.d-floor(lon.d);
+	lat.d = latitude/180.0;
+	lon.d = longitude/360.0;
 	
 	lat_exp = (lat.i64>>52) & 0x7FFLL;
+	if(lat.d!=0.0){
+		lat.i64 = (lat.i64 & 0xFFFFFFFFFFFFFLL) | 0x10000000000000LL;
+	}
 	lon_exp = (lon.i64>>52) & 0x7FFLL;
+	if(lon.d!=0.0){
+		lon.i64 = (lon.i64 & 0xFFFFFFFFFFFFFLL) | 0x10000000000000LL;
+	}
 	
-	lat.i64 = (lat.i64 & 0xFFFFFFFFFFFFFLL) | 0x10000000000000LL;
-	lon.i64 = (lon.i64 & 0xFFFFFFFFFFFFFLL) | 0x10000000000000LL;
+	if(lat_exp<1011){
+		lat.i64=lat.i64>>(1011-lat_exp);
+	}else{
+		lat.i64=lat.i64<<(lat_exp-1011);
+	}
+	if(lon_exp<1011){
+		lon.i64=lon.i64>>(1011-lon_exp);
+	}else{
+		lon.i64=lon.i64<<(lon_exp-1011);
+	}
 	
-	if(lat_exp<1022){ lat.i64 = lat.i64>>(1022-lat_exp); }
-	if(lon_exp<1022){ lon.i64 = lon.i64>>(1022-lon_exp); }
+	if(latitude>0.0){
+		lat.i64 = 0x8000000000000000LL + lat.i64;
+	}else{
+		lat.i64 = 0x8000000000000000LL - lat.i64;
+	}
+	if(longitude>0.0){
+		lon.i64 = 0x8000000000000000LL + lon.i64;
+	}else{
+		lon.i64 = 0x8000000000000000LL - lon.i64;
+	}
 	
+	int i=0;
+	for(i=0;i<12;i++){
+		unsigned int o = lon.i64>>(59-5*i);
+		unsigned int a = lat.i64>>(59-5*i);
+		tmp = 0;
+		tmp |= (o&0x10)<<5 | (a&0x10)<<4;
+		tmp |= (o&0x08)<<4 | (a&0x08)<<3;
+		tmp |= (o&0x04)<<3 | (a&0x04)<<2;
+		tmp |= (o&0x02)<<2 | (a&0x02)<<1;
+		tmp |= (o&0x01)<<1 | (a&0x01)<<0;
+		r[i*2]=map[tmp>>5];
+		r[i*2+1]=map[tmp&0x1F];
+	}
+	i=12;
+	unsigned int o = lon.i64<<1;
+	unsigned int a = lat.i64<<1;
 	tmp = 0;
-	tmp |= ((lon.s[B6]&0x10)<<5) | ((lat.s[B6]&0x10)<<4);
-	tmp |= ((lon.s[B6]&0x08)<<4) | ((lat.s[B6]&0x08)<<3);
-	tmp |= ((lon.s[B6]&0x04)<<3) | ((lat.s[B6]&0x04)<<2);
-	tmp |= ((lon.s[B6]&0x02)<<2) | ((lat.s[B6]&0x02)<<1);
-	tmp |= ((lon.s[B6]&0x01)<<1) | ((lat.s[B6]&0x01)<<0);
-	r[0]=map[tmp>>5];
-	r[1]=map[tmp&0x1F];
-	tmp = 0;
-	tmp |= ((lon.s[B5]&0x80)<<2) | ((lat.s[B5]&0x80)<<1);
-	tmp |= ((lon.s[B5]&0x40)<<1) | ((lat.s[B5]&0x40)<<0);
-	tmp |= ((lon.s[B5]&0x20)<<0) | ((lat.s[B5]&0x20)>>1);
-	tmp |= ((lon.s[B5]&0x10)>>1) | ((lat.s[B5]&0x10)>>2);
-	tmp |= ((lon.s[B5]&0x08)>>2) | ((lat.s[B5]&0x08)>>3);
-	r[2]=map[tmp>>5];
-	r[3]=map[tmp&0x1F];
-	tmp = 0;
-	tmp |= ((lon.s[B5]&0x04)<<7) | ((lat.s[B5]&0x04)<<6);
-	tmp |= ((lon.s[B5]&0x02)<<6) | ((lat.s[B5]&0x02)<<5);
-	tmp |= ((lon.s[B5]&0x01)<<5) | ((lat.s[B5]&0x01)<<4);
-	tmp |= ((lon.s[B4]&0x80)>>4) | ((lat.s[B4]&0x80)>>5);
-	tmp |= ((lon.s[B4]&0x40)>>5) | ((lat.s[B4]&0x40)>>6);
-	r[4]=map[tmp>>5];
-	r[5]=map[tmp&0x1F];
-	tmp = 0;
-	tmp |= ((lon.s[B4]&0x20)<<4) | ((lat.s[B4]&0x20)<<3);
-	tmp |= ((lon.s[B4]&0x10)<<3) | ((lat.s[B4]&0x10)<<2);
-	tmp |= ((lon.s[B4]&0x08)<<2) | ((lat.s[B4]&0x08)<<1);
-	tmp |= ((lon.s[B4]&0x04)<<1) | ((lat.s[B4]&0x04)<<0);
-	tmp |= ((lon.s[B4]&0x02)<<0) | ((lat.s[B4]&0x02)>>1);
-	r[6]=map[tmp>>5];
-	r[7]=map[tmp&0x1F];
-	tmp = 0;
-	tmp |= ((lon.s[B4]&0x01)<<9) | ((lat.s[B4]&0x01)<<8);
-	tmp |= ((lon.s[B3]&0x80)<<0) | ((lat.s[B3]&0x80)>>1);
-	tmp |= ((lon.s[B3]&0x40)>>1) | ((lat.s[B3]&0x40)>>2);
-	tmp |= ((lon.s[B3]&0x20)>>2) | ((lat.s[B3]&0x20)>>3);
-	tmp |= ((lon.s[B3]&0x10)>>3) | ((lat.s[B3]&0x10)>>4);
-	r[8]=map[tmp>>5];
-	r[9]=map[tmp&0x1F];
-	tmp = 0;
-	tmp |= ((lon.s[B3]&0x08)<<6) | ((lat.s[B3]&0x08)<<5);
-	tmp |= ((lon.s[B3]&0x04)<<5) | ((lat.s[B3]&0x04)<<4);
-	tmp |= ((lon.s[B3]&0x02)<<4) | ((lat.s[B3]&0x02)<<3);
-	tmp |= ((lon.s[B3]&0x01)<<3) | ((lat.s[B3]&0x01)<<2);
-	tmp |= ((lon.s[B2]&0x80)>>6) | ((lat.s[B2]&0x80)>>7);
-	r[10]=map[tmp>>5];
-	r[11]=map[tmp&0x1F];
-	tmp = 0;
-	tmp |= ((lon.s[B2]&0x40)<<3) | ((lat.s[B2]&0x40)<<2);
-	tmp |= ((lon.s[B2]&0x20)<<2) | ((lat.s[B2]&0x20)<<1);
-	tmp |= ((lon.s[B2]&0x10)<<1) | ((lat.s[B2]&0x10)<<0);
-	tmp |= ((lon.s[B2]&0x08)<<0) | ((lat.s[B2]&0x08)>>1);
-	tmp |= ((lon.s[B2]&0x04)>>1) | ((lat.s[B2]&0x04)>>2);
-	r[12]=map[tmp>>5];
-	r[13]=map[tmp&0x1F];
-	tmp = 0;
-	tmp |= ((lon.s[B2]&0x02)<<8) | ((lat.s[B2]&0x02)<<7);
-	tmp |= ((lon.s[B2]&0x01)<<7) | ((lat.s[B2]&0x01)<<6);
-	tmp |= ((lon.s[B1]&0x80)>>2) | ((lat.s[B1]&0x80)>>3);
-	tmp |= ((lon.s[B1]&0x40)>>3) | ((lat.s[B1]&0x40)>>4);
-	tmp |= ((lon.s[B1]&0x20)>>4) | ((lat.s[B1]&0x20)>>5);
-	r[14]=map[tmp>>5];
-	r[15]=map[tmp&0x1F];
-	tmp = 0;
-	tmp |= ((lon.s[B1]&0x10)<<5) | ((lat.s[B1]&0x10)<<4);
-	tmp |= ((lon.s[B1]&0x08)<<4) | ((lat.s[B1]&0x08)<<3);
-	tmp |= ((lon.s[B1]&0x04)<<3) | ((lat.s[B1]&0x04)<<2);
-	tmp |= ((lon.s[B1]&0x02)<<2) | ((lat.s[B1]&0x02)<<1);
-	tmp |= ((lon.s[B1]&0x01)<<1) | ((lat.s[B1]&0x01)<<0);
-	r[16]=map[tmp>>5];
-	r[17]=map[tmp&0x1F];
-	tmp = 0;
-	tmp |= ((lon.s[B0]&0x80)<<2) | ((lat.s[B0]&0x80)<<1);
-	tmp |= ((lon.s[B0]&0x40)<<1) | ((lat.s[B0]&0x40)<<0);
-	tmp |= ((lon.s[B0]&0x20)<<0) | ((lat.s[B0]&0x20)>>1);
-	tmp |= ((lon.s[B0]&0x10)>>1) | ((lat.s[B0]&0x10)>>2);
-	tmp |= ((lon.s[B0]&0x08)>>2) | ((lat.s[B0]&0x08)>>3);
-	r[18]=map[tmp>>5];
-	r[19]=map[tmp&0x1F];
-	tmp = 0;
-	tmp |= ((lon.s[B0]&0x04)<<7) | ((lat.s[B0]&0x04)<<6);
-	tmp |= ((lon.s[B0]&0x02)<<6) | ((lat.s[B0]&0x02)<<5);
-	tmp |= ((lon.s[B0]&0x01)<<5) | ((lat.s[B0]&0x01)<<4);
-	r[20]=map[tmp>>5];
-	r[21]=map[tmp&0x1F];
-	r[22]='\0';
+	tmp |= (o&0x10)<<5 | (a&0x10)<<4;
+	tmp |= (o&0x08)<<4 | (a&0x08)<<3;
+	tmp |= (o&0x04)<<3 | (a&0x04)<<2;
+	tmp |= (o&0x02)<<2 | (a&0x02)<<1;
+	tmp |= (o&0x01)<<1 | (a&0x01)<<0;
+	r[i*2]=map[tmp>>5];
+	r[i*2+1]=map[tmp&0x1F];
+	i=13;
+	r[i*2]='\0';
 	return GEOHASH_OK;
 }
 
