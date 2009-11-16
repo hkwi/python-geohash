@@ -62,15 +62,22 @@ def encode(latitude, longitude, precision=12):
 			return basecode[0:precision]
 		return basecode+'0'*(precision-len(basecode))
 	
-	lat = latitude/180.0+0.5
-	lon = longitude/360.0+0.5
+	lat = latitude/180.0
+	lon = longitude/360.0
 	
 	lat_length=lon_length=precision*5/2
 	if precision%2==1:
 		lon_length+=1
 	
-	lat = int((1<<lat_length)*lat)
-	lon = int((1<<lon_length)*lon)
+	if lat>0:
+		lat = int((1<<lat_length)*lat)+(1<<(lat_length-1))
+	else:
+		lat = (1<<lat_length-1)-int((1<<lat_length)*(-lat))
+	
+	if lon>0:
+		lon = int((1<<lon_length)*lon)+(1<<(lon_length-1))
+	else:
+		lon = (1<<lon_length-1)-int((1<<lon_length)*(-lon))
 	
 	return _encode_i2c(lat,lon,lat_length,lon_length)
 
