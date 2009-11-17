@@ -37,16 +37,16 @@ def _encode_i2c(lat,lon,lat_length,lon_length):
 		a = lat
 		b = lon
 	
-	ret = ''
+	ret = [None]*precision
 	while precision>0:
 		c = ((a&4)<<2) + ((b&2)<<2) + ((a&2)<<1) + ((b&1)<<1) + (a&1)
-		ret += _base32[c]
+		ret[precision-1]=_base32[c]
 		t = a>>3
 		a = b>>2
 		b = t
 		precision-=1
 	
-	return ret[::-1]
+	return ''.join(ret)
 
 def encode(latitude, longitude, precision=12):
 	if latitude > 90.0 or latitude < -90.0:
