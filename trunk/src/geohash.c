@@ -194,6 +194,55 @@ PyMODINIT_FUNC init_geohash(void){
 }
 #endif /* PYTHON_MODULE */
 
+static inline uint64_t interleave(uint8_t upper, uint8_t lower){
+	static const uint16_t map[] = {
+		UINT64_C(0x0000), UINT64_C(0x0001), UINT64_C(0x0004), UINT64_C(0x0005), UINT64_C(0x0010), UINT64_C(0x0011), 
+		UINT64_C(0x0014), UINT64_C(0x0015), UINT64_C(0x0040), UINT64_C(0x0041), UINT64_C(0x0044), UINT64_C(0x0045), 
+		UINT64_C(0x0050), UINT64_C(0x0051), UINT64_C(0x0054), UINT64_C(0x0055), UINT64_C(0x0100), UINT64_C(0x0101), 
+		UINT64_C(0x0104), UINT64_C(0x0105), UINT64_C(0x0110), UINT64_C(0x0111), UINT64_C(0x0114), UINT64_C(0x0115), 
+		UINT64_C(0x0140), UINT64_C(0x0141), UINT64_C(0x0144), UINT64_C(0x0145), UINT64_C(0x0150), UINT64_C(0x0151), 
+		UINT64_C(0x0154), UINT64_C(0x0155), UINT64_C(0x0400), UINT64_C(0x0401), UINT64_C(0x0404), UINT64_C(0x0405), 
+		UINT64_C(0x0410), UINT64_C(0x0411), UINT64_C(0x0414), UINT64_C(0x0415), UINT64_C(0x0440), UINT64_C(0x0441), 
+		UINT64_C(0x0444), UINT64_C(0x0445), UINT64_C(0x0450), UINT64_C(0x0451), UINT64_C(0x0454), UINT64_C(0x0455), 
+		UINT64_C(0x0500), UINT64_C(0x0501), UINT64_C(0x0504), UINT64_C(0x0505), UINT64_C(0x0510), UINT64_C(0x0511), 
+		UINT64_C(0x0514), UINT64_C(0x0515), UINT64_C(0x0540), UINT64_C(0x0541), UINT64_C(0x0544), UINT64_C(0x0545), 
+		UINT64_C(0x0550), UINT64_C(0x0551), UINT64_C(0x0554), UINT64_C(0x0555), UINT64_C(0x1000), UINT64_C(0x1001), 
+		UINT64_C(0x1004), UINT64_C(0x1005), UINT64_C(0x1010), UINT64_C(0x1011), UINT64_C(0x1014), UINT64_C(0x1015), 
+		UINT64_C(0x1040), UINT64_C(0x1041), UINT64_C(0x1044), UINT64_C(0x1045), UINT64_C(0x1050), UINT64_C(0x1051), 
+		UINT64_C(0x1054), UINT64_C(0x1055), UINT64_C(0x1100), UINT64_C(0x1101), UINT64_C(0x1104), UINT64_C(0x1105), 
+		UINT64_C(0x1110), UINT64_C(0x1111), UINT64_C(0x1114), UINT64_C(0x1115), UINT64_C(0x1140), UINT64_C(0x1141), 
+		UINT64_C(0x1144), UINT64_C(0x1145), UINT64_C(0x1150), UINT64_C(0x1151), UINT64_C(0x1154), UINT64_C(0x1155), 
+		UINT64_C(0x1400), UINT64_C(0x1401), UINT64_C(0x1404), UINT64_C(0x1405), UINT64_C(0x1410), UINT64_C(0x1411), 
+		UINT64_C(0x1414), UINT64_C(0x1415), UINT64_C(0x1440), UINT64_C(0x1441), UINT64_C(0x1444), UINT64_C(0x1445), 
+		UINT64_C(0x1450), UINT64_C(0x1451), UINT64_C(0x1454), UINT64_C(0x1455), UINT64_C(0x1500), UINT64_C(0x1501), 
+		UINT64_C(0x1504), UINT64_C(0x1505), UINT64_C(0x1510), UINT64_C(0x1511), UINT64_C(0x1514), UINT64_C(0x1515), 
+		UINT64_C(0x1540), UINT64_C(0x1541), UINT64_C(0x1544), UINT64_C(0x1545), UINT64_C(0x1550), UINT64_C(0x1551), 
+		UINT64_C(0x1554), UINT64_C(0x1555), UINT64_C(0x4000), UINT64_C(0x4001), UINT64_C(0x4004), UINT64_C(0x4005), 
+		UINT64_C(0x4010), UINT64_C(0x4011), UINT64_C(0x4014), UINT64_C(0x4015), UINT64_C(0x4040), UINT64_C(0x4041), 
+		UINT64_C(0x4044), UINT64_C(0x4045), UINT64_C(0x4050), UINT64_C(0x4051), UINT64_C(0x4054), UINT64_C(0x4055), 
+		UINT64_C(0x4100), UINT64_C(0x4101), UINT64_C(0x4104), UINT64_C(0x4105), UINT64_C(0x4110), UINT64_C(0x4111), 
+		UINT64_C(0x4114), UINT64_C(0x4115), UINT64_C(0x4140), UINT64_C(0x4141), UINT64_C(0x4144), UINT64_C(0x4145), 
+		UINT64_C(0x4150), UINT64_C(0x4151), UINT64_C(0x4154), UINT64_C(0x4155), UINT64_C(0x4400), UINT64_C(0x4401), 
+		UINT64_C(0x4404), UINT64_C(0x4405), UINT64_C(0x4410), UINT64_C(0x4411), UINT64_C(0x4414), UINT64_C(0x4415), 
+		UINT64_C(0x4440), UINT64_C(0x4441), UINT64_C(0x4444), UINT64_C(0x4445), UINT64_C(0x4450), UINT64_C(0x4451), 
+		UINT64_C(0x4454), UINT64_C(0x4455), UINT64_C(0x4500), UINT64_C(0x4501), UINT64_C(0x4504), UINT64_C(0x4505), 
+		UINT64_C(0x4510), UINT64_C(0x4511), UINT64_C(0x4514), UINT64_C(0x4515), UINT64_C(0x4540), UINT64_C(0x4541), 
+		UINT64_C(0x4544), UINT64_C(0x4545), UINT64_C(0x4550), UINT64_C(0x4551), UINT64_C(0x4554), UINT64_C(0x4555), 
+		UINT64_C(0x5000), UINT64_C(0x5001), UINT64_C(0x5004), UINT64_C(0x5005), UINT64_C(0x5010), UINT64_C(0x5011), 
+		UINT64_C(0x5014), UINT64_C(0x5015), UINT64_C(0x5040), UINT64_C(0x5041), UINT64_C(0x5044), UINT64_C(0x5045), 
+		UINT64_C(0x5050), UINT64_C(0x5051), UINT64_C(0x5054), UINT64_C(0x5055), UINT64_C(0x5100), UINT64_C(0x5101), 
+		UINT64_C(0x5104), UINT64_C(0x5105), UINT64_C(0x5110), UINT64_C(0x5111), UINT64_C(0x5114), UINT64_C(0x5115), 
+		UINT64_C(0x5140), UINT64_C(0x5141), UINT64_C(0x5144), UINT64_C(0x5145), UINT64_C(0x5150), UINT64_C(0x5151), 
+		UINT64_C(0x5154), UINT64_C(0x5155), UINT64_C(0x5400), UINT64_C(0x5401), UINT64_C(0x5404), UINT64_C(0x5405), 
+		UINT64_C(0x5410), UINT64_C(0x5411), UINT64_C(0x5414), UINT64_C(0x5415), UINT64_C(0x5440), UINT64_C(0x5441), 
+		UINT64_C(0x5444), UINT64_C(0x5445), UINT64_C(0x5450), UINT64_C(0x5451), UINT64_C(0x5454), UINT64_C(0x5455), 
+		UINT64_C(0x5500), UINT64_C(0x5501), UINT64_C(0x5504), UINT64_C(0x5505), UINT64_C(0x5510), UINT64_C(0x5511), 
+		UINT64_C(0x5514), UINT64_C(0x5515), UINT64_C(0x5540), UINT64_C(0x5541), UINT64_C(0x5544), UINT64_C(0x5545), 
+		UINT64_C(0x5550), UINT64_C(0x5551), UINT64_C(0x5554)
+	};
+	return (map[upper]<<1)+map[lower];
+}
+
 /*
   latitude must be in [-90.0, 90.0) and longitude must be in [-180.0 180.0)
 */
@@ -201,12 +250,10 @@ int geohash_encode(double latitude, double longitude, char* r, size_t capacity){
 	static const char* map="0123456789bcdefghjkmnpqrstuvwxyz";
 	union {
 		double d; // assuming IEEE 754-1985 binary64. This might not be true on some CPU (I don't know which).
-//		unsigned char s[8];
 		// formally, we should use unsigned char for type-punning (see C99 ISO/IEC 9899:201x spec 6.2.6)
 		uint64_t i64;
 	} lat, lon;
 	unsigned short lat_exp, lon_exp;
-	uint16_t tmp;
 	
 	if(capacity<27){
 		return GEOHASH_OVERFLOW;
@@ -219,13 +266,13 @@ int geohash_encode(double latitude, double longitude, char* r, size_t capacity){
 	lat.d = latitude/180.0;
 	lon.d = longitude/360.0;
 	
-	lat_exp = (lat.i64>>52) & 0x7FFLL;
+	lat_exp = (lat.i64>>52) & UINT64_C(0x7FF);
 	if(lat.d!=0.0){
-		lat.i64 = (lat.i64 & 0xFFFFFFFFFFFFFLL) | 0x10000000000000LL;
+		lat.i64 = (lat.i64 & UINT64_C(0xFFFFFFFFFFFFF)) | UINT64_C(0x10000000000000);
 	}
-	lon_exp = (lon.i64>>52) & 0x7FFLL;
+	lon_exp = (lon.i64>>52) & UINT64_C(0x7FF);
 	if(lon.d!=0.0){
-		lon.i64 = (lon.i64 & 0xFFFFFFFFFFFFFLL) | 0x10000000000000LL;
+		lon.i64 = (lon.i64 & UINT64_C(0xFFFFFFFFFFFFF)) | UINT64_C(0x10000000000000);
 	}
 	
 	if(lat_exp<1011){
@@ -240,42 +287,53 @@ int geohash_encode(double latitude, double longitude, char* r, size_t capacity){
 	}
 	
 	if(latitude>0.0){
-		lat.i64 = 0x8000000000000000LL + lat.i64;
+		lat.i64 = UINT64_C(0x8000000000000000) + lat.i64;
 	}else{
-		lat.i64 = 0x8000000000000000LL - lat.i64;
+		lat.i64 = UINT64_C(0x8000000000000000) - lat.i64;
 	}
 	if(longitude>0.0){
-		lon.i64 = 0x8000000000000000LL + lon.i64;
+		lon.i64 = UINT64_C(0x8000000000000000) + lon.i64;
 	}else{
-		lon.i64 = 0x8000000000000000LL - lon.i64;
+		lon.i64 = UINT64_C(0x8000000000000000) - lon.i64;
 	}
 	
-	int i=0;
-	for(i=0;i<12;i++){
-		unsigned int o = lon.i64>>(59-5*i);
-		unsigned int a = lat.i64>>(59-5*i);
-		tmp = 0;
-		tmp |= (o&0x10)<<5 | (a&0x10)<<4;
-		tmp |= (o&0x08)<<4 | (a&0x08)<<3;
-		tmp |= (o&0x04)<<3 | (a&0x04)<<2;
-		tmp |= (o&0x02)<<2 | (a&0x02)<<1;
-		tmp |= (o&0x01)<<1 | (a&0x01)<<0;
-		r[i*2]=map[tmp>>5];
-		r[i*2+1]=map[tmp&0x1F];
-	}
-	i=12;
-	unsigned int o = lon.i64<<1;
-	unsigned int a = lat.i64<<1;
-	tmp = 0;
-	tmp |= (o&0x10)<<5 | (a&0x10)<<4;
-	tmp |= (o&0x08)<<4 | (a&0x08)<<3;
-	tmp |= (o&0x04)<<3 | (a&0x04)<<2;
-	tmp |= (o&0x02)<<2 | (a&0x02)<<1;
-	tmp |= (o&0x01)<<1 | (a&0x01)<<0;
-	r[i*2]=map[tmp>>5];
-	r[i*2+1]=map[tmp&0x1F];
-	i=13;
-	r[i*2]='\0';
+	uint64_t idx0,idx1;
+	idx0 = idx1 = 0;
+	idx1 |= interleave(lon.i64>>56, lat.i64>>56)<<48;
+	idx1 |= interleave(lon.i64>>48, lat.i64>>48)<<32;
+	idx1 |= interleave(lon.i64>>40, lat.i64>>40)<<16;
+	idx1 |= interleave(lon.i64>>32, lat.i64>>32);
+	idx0 |= interleave(lon.i64>>24, lat.i64>>24)<<48;
+	idx0 |= interleave(lon.i64>>16, lat.i64>>16)<<32;
+	idx0 |= interleave(lon.i64>>8, lat.i64>>8)<<16;
+	idx0 |= interleave(lon.i64, lat.i64);
+	r[0] = map[(idx1>>59)&0x1F];
+	r[1] = map[(idx1>>54)&0x1F];
+	r[2] = map[(idx1>>49)&0x1F];
+	r[3] = map[(idx1>>44)&0x1F];
+	r[4] = map[(idx1>>39)&0x1F];
+	r[5] = map[(idx1>>34)&0x1F];
+	r[6] = map[(idx1>>29)&0x1F];
+	r[7] = map[(idx1>>24)&0x1F];
+	r[8] = map[(idx1>>19)&0x1F];
+	r[9] = map[(idx1>>14)&0x1F];
+	r[10] = map[(idx1>>9)&0x1F];
+	r[11] = map[(idx1>>4)&0x1F];
+	r[12] = map[((idx1<<1)&0x1E)|(idx0>>63)];
+	r[13] = map[(idx0>>58)&0x1F];
+	r[14] = map[(idx0>>53)&0x1F];
+	r[15] = map[(idx0>>48)&0x1F];
+	r[16] = map[(idx0>>43)&0x1F];
+	r[17] = map[(idx0>>38)&0x1F];
+	r[18] = map[(idx0>>33)&0x1F];
+	r[19] = map[(idx0>>28)&0x1F];
+	r[20] = map[(idx0>>23)&0x1F];
+	r[21] = map[(idx0>>18)&0x1F];
+	r[22] = map[(idx0>>13)&0x1F];
+	r[23] = map[(idx0>>8)&0x1F];
+	r[24] = map[(idx0>>3)&0x1F];
+	r[25] = map[(idx0<<2)&0x1F];
+	r[26] = '\0';
 	return GEOHASH_OK;
 }
 
@@ -329,8 +387,8 @@ int geohash_decode(char* r, size_t length, double *latitude, double *longitude){
 	
 	int lat_neg=0,lon_neg=0;
 	uint64_t lat_h,lon_h;
-	lat_h=1LL<<(5*(cshift/2) + 2*(cshift%2)-1);
-	lon_h=1LL<<(5*(cshift/2) + 3*(cshift%2)-1);
+	lat_h=UINT64_C(1)<<(5*(cshift/2) + 2*(cshift%2)-1);
+	lon_h=UINT64_C(1)<<(5*(cshift/2) + 3*(cshift%2)-1);
 	if(lat.i64>=lat_h){
 		lat.i64=lat.i64-lat_h;
 	}else{
