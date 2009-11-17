@@ -37,19 +37,19 @@ def _encode_i2c(lat,lon,lat_length,lon_length):
 		a = lat
 		b = lon
 	
-	ret = [None]*precision
-	while precision>0:
-		c = ((a&4)<<2) + ((b&2)<<2) + ((a&2)<<1) + ((b&1)<<1) + (a&1)
-		ret[precision-1]=_base32[c]
+	boost = (0,1,4,5,16,17,20,21)
+	ret = ''
+	for i in range(precision):
+		c = (boost[a&7]+(boost[b&3]<<1))&0x1F
+		ret+=_base32[c]
 		t = a>>3
 		a = b>>2
 		b = t
-		precision-=1
 	
-	return ''.join(ret)
+	return ret[::-1]
 
 def encode(latitude, longitude, precision=12):
-	if latitude > 90.0 or latitude < -90.0:
+	if latitude >= 90.0 or latitude < -90.0:
 		raise Exception("invalid latitude.")
 	while longitude < -180.0:
 		longitude += 360.0
