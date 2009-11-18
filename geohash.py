@@ -40,8 +40,7 @@ def _encode_i2c(lat,lon,lat_length,lon_length):
 	boost = (0,1,4,5,16,17,20,21)
 	ret = ''
 	for i in range(precision):
-		c = (boost[a&7]+(boost[b&3]<<1))&0x1F
-		ret+=_base32[c]
+		ret+=_base32[(boost[a&7]+(boost[b&3]<<1))&0x1F]
 		t = a>>3
 		a = b>>2
 		b = t
