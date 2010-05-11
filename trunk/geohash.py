@@ -156,7 +156,7 @@ def bbox(hashcode):
 		(lat,lon,lat_bits,lon_bits) = _geohash.decode(hashcode)
 		latitude_delta = 180.0/(1<<lat_bits)
 		longitude_delta = 360.0/(1<<lon_bits)
-		return {'s':lat,'e':lon,'n':lat+latitude_delta,'w':lon+longitude_delta}
+		return {'s':lat,'w':lon,'n':lat+latitude_delta,'e':lon+longitude_delta}
 	
 	(lat,lon,lat_length,lon_length) = _decode_c2i(hashcode)
 	
