@@ -159,12 +159,21 @@ def bbox(hashcode):
 		return {'s':lat,'w':lon,'n':lat+latitude_delta,'e':lon+longitude_delta}
 	
 	(lat,lon,lat_length,lon_length) = _decode_c2i(hashcode)
-	
 	ret={}
-	ret['n'] = 180.0*(lat+1-(1<<(lat_length-1)))/(1<<lat_length)
-	ret['s'] = 180.0*(lat-(1<<(lat_length-1)))/(1<<lat_length)
-	ret['e'] = 360.0*(lon+1-(1<<(lon_length-1)))/(1<<lon_length)
-	ret['w'] = 360.0*(lon-(1<<(lon_length-1)))/(1<<lon_length)
+	if lat_length:
+		ret['n'] = 180.0*(lat+1-(1<<(lat_length-1)))/(1<<lat_length)
+		ret['s'] = 180.0*(lat-(1<<(lat_length-1)))/(1<<lat_length)
+	else: # can't calculate the half with bit shifts (negative shift)
+		ret['n'] = 90.0
+		ret['s'] = -90.0
+	
+	if lon_length:
+		ret['e'] = 360.0*(lon+1-(1<<(lon_length-1)))/(1<<lon_length)
+		ret['w'] = 360.0*(lon-(1<<(lon_length-1)))/(1<<lon_length)
+	else: # can't calculate the half with bit shifts (negative shift)
+		ret['e'] = 180.0
+		ret['w'] = -180.0
+	
 	return ret
 
 def neighbors(hashcode):
