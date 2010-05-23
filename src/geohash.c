@@ -372,7 +372,6 @@ int geohash_decode(char* r, size_t length, double *latitude, double *longitude){
 		unsigned char o1 = map[(unsigned char)r[cshift]];
 		if(o1=='@'){ break; }
 		if(o1=='|'){
-			PyErr_SetString(PyExc_ValueError,"geohash code is [0123456789bcdefghjkmnpqrstuvwxyz]+");
 			return GEOHASH_INVALIDCODE;
 		}
 		if(cshift%2==0){
@@ -384,11 +383,19 @@ int geohash_decode(char* r, size_t length, double *latitude, double *longitude){
 		}
 		cshift++;
 	}
+	if(cshift==0){
+		// cshift=1; // no input equals to '0'
+		// but we do know the result.
+		*latitude = -90.0;
+		*longitude = -180.0;
+		return GEOHASH_OK;
+	}
 	
 	int lat_neg=0,lon_neg=0;
 	uint64_t lat_h,lon_h;
 	lat_h=UINT64_C(1)<<(5*(cshift/2) + 2*(cshift%2)-1);
 	lon_h=UINT64_C(1)<<(5*(cshift/2) + 3*(cshift%2)-1);
+	
 	if(lat.i64>=lat_h){
 		lat.i64=lat.i64-lat_h;
 	}else{
@@ -403,26 +410,30 @@ int geohash_decode(char* r, size_t length, double *latitude, double *longitude){
 	}
 	
 	// rounding to double representation
-	int i,lat_i=0,lon_i=0;
+	int i,lat_i=-1,lon_i=-1;
 	for(i=0;i<64;i++){
 		if(lat.i64>>i){ lat_i=i; }
 		if(lon.i64>>i){ lon_i=i; }
 	}
 	
-	if(lat_i>52){
-		lat.i64=lat.i64>>(lat_i-52);
+	if(lat_i==-1){
+		lat_i = 0;
 	}else{
-		lat.i64=lat.i64<<(52-lat_i);
-	}
-	if(lat_i!=0){
+		if(lat_i>52){
+			lat.i64=lat.i64>>(lat_i-52);
+		}else{
+			lat.i64=lat.i64<<(52-lat_i);
+		}
 		lat_i = 1023 + lat_i - 5*(cshift/2) - 2*(cshift%2);
 	}
-	if(lon_i>52){
-		lon.i64=lon.i64>>(lon_i-52);
+	if(lon_i==-1){
+		lon_i = 0;
 	}else{
-		lon.i64=lon.i64<<(52-lon_i);
-	}
-	if(lon_i!=0){
+		if(lon_i>52){
+			lon.i64=lon.i64>>(lon_i-52);
+		}else{
+			lon.i64=lon.i64<<(52-lon_i);
+		}
 		lon_i = 1023 + lon_i - 5*(cshift/2) - 3*(cshift%2);
 	}
 	
