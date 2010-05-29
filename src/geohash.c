@@ -1,9 +1,21 @@
 #include <stdio.h>
 #include <math.h>
-#include <stdint.h>
 #include "geohash.h"
-#include <sys/param.h>
 
+#if defined(_MSC_VER) && (_MSC_VER <= 1500)
+typedef unsigned __int64 uint64_t;
+#define UINT64_C(C) ((uint64_t) C ## ULL)
+#else
+#include <stdint.h>
+#endif
+
+#ifdef _MSC_VER
+// http://msdn.microsoft.com/en-us/library/b0084kay(VS.80).aspx
+#ifdef _M_IX86 || _M_IA64 || _M_X64
+# define __LITTLE_ENDIAN__
+#endif
+#else /* _MSC_VER */
+#include <sys/param.h>
 #if !defined(__LITTLE_ENDIAN__) && !defined(__BIG_ENDIAN__) /* MacOS X style */
 #ifdef __BYTE_ORDER /* Linux style */
 # if __BYTE_ORDER == __LITTLE_ENDIAN
@@ -22,6 +34,7 @@
 # endif
 #endif
 #endif
+#endif /* _MSC_VER */
 
 #if !defined(__LITTLE_ENDIAN__) && !defined(__BIG_ENDIAN__)
 /* I don't have __PDP_ENDIAN machine. Please let me know if you have one. */
@@ -254,12 +267,10 @@ int geohash_encode(double latitude, double longitude, char* r, size_t capacity){
 		uint64_t i64;
 	} lat, lon;
 	unsigned short lat_exp, lon_exp;
+	char lr[27];
 	
-	if(capacity<27){
-		return GEOHASH_OVERFLOW;
-	}
 #ifdef __UNSUPPORTED_ENDIAN__
-	r[0]='\0';
+	if(capacity>0){ r[0]='\0'; }
 	return GEOHASH_NOTSUPPORTED;
 #endif
 	
@@ -307,33 +318,41 @@ int geohash_encode(double latitude, double longitude, char* r, size_t capacity){
 	idx0 |= interleave(lon.i64>>16, lat.i64>>16)<<32;
 	idx0 |= interleave(lon.i64>>8, lat.i64>>8)<<16;
 	idx0 |= interleave(lon.i64, lat.i64);
-	r[0] = map[(idx1>>59)&0x1F];
-	r[1] = map[(idx1>>54)&0x1F];
-	r[2] = map[(idx1>>49)&0x1F];
-	r[3] = map[(idx1>>44)&0x1F];
-	r[4] = map[(idx1>>39)&0x1F];
-	r[5] = map[(idx1>>34)&0x1F];
-	r[6] = map[(idx1>>29)&0x1F];
-	r[7] = map[(idx1>>24)&0x1F];
-	r[8] = map[(idx1>>19)&0x1F];
-	r[9] = map[(idx1>>14)&0x1F];
-	r[10] = map[(idx1>>9)&0x1F];
-	r[11] = map[(idx1>>4)&0x1F];
-	r[12] = map[((idx1<<1)&0x1E)|(idx0>>63)];
-	r[13] = map[(idx0>>58)&0x1F];
-	r[14] = map[(idx0>>53)&0x1F];
-	r[15] = map[(idx0>>48)&0x1F];
-	r[16] = map[(idx0>>43)&0x1F];
-	r[17] = map[(idx0>>38)&0x1F];
-	r[18] = map[(idx0>>33)&0x1F];
-	r[19] = map[(idx0>>28)&0x1F];
-	r[20] = map[(idx0>>23)&0x1F];
-	r[21] = map[(idx0>>18)&0x1F];
-	r[22] = map[(idx0>>13)&0x1F];
-	r[23] = map[(idx0>>8)&0x1F];
-	r[24] = map[(idx0>>3)&0x1F];
-	r[25] = map[(idx0<<2)&0x1F];
-	r[26] = '\0';
+	lr[0] = map[(idx1>>59)&0x1F];
+	lr[1] = map[(idx1>>54)&0x1F];
+	lr[2] = map[(idx1>>49)&0x1F];
+	lr[3] = map[(idx1>>44)&0x1F];
+	lr[4] = map[(idx1>>39)&0x1F];
+	lr[5] = map[(idx1>>34)&0x1F];
+	lr[6] = map[(idx1>>29)&0x1F];
+	lr[7] = map[(idx1>>24)&0x1F];
+	lr[8] = map[(idx1>>19)&0x1F];
+	lr[9] = map[(idx1>>14)&0x1F];
+	lr[10] = map[(idx1>>9)&0x1F];
+	lr[11] = map[(idx1>>4)&0x1F];
+	lr[12] = map[((idx1<<1)&0x1E)|(idx0>>63)];
+	lr[13] = map[(idx0>>58)&0x1F];
+	lr[14] = map[(idx0>>53)&0x1F];
+	lr[15] = map[(idx0>>48)&0x1F];
+	lr[16] = map[(idx0>>43)&0x1F];
+	lr[17] = map[(idx0>>38)&0x1F];
+	lr[18] = map[(idx0>>33)&0x1F];
+	lr[19] = map[(idx0>>28)&0x1F];
+	lr[20] = map[(idx0>>23)&0x1F];
+	lr[21] = map[(idx0>>18)&0x1F];
+	lr[22] = map[(idx0>>13)&0x1F];
+	lr[23] = map[(idx0>>8)&0x1F];
+	lr[24] = map[(idx0>>3)&0x1F];
+	lr[25] = map[(idx0<<2)&0x1F];
+	lr[26] = '\0';
+	if(0<capacity){
+		if(capacity<27){
+			memcpy(r, (const char*)lr, capacity-1);
+			r[capacity-1]='\0';
+		}else{
+			memcpy(r, (const char*)lr, 27);
+		}
+	}
 	return GEOHASH_OK;
 }
 
