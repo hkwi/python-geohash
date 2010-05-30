@@ -11,7 +11,7 @@ typedef unsigned __int64 uint64_t;
 
 #ifdef _MSC_VER
 // http://msdn.microsoft.com/en-us/library/b0084kay(VS.80).aspx
-#ifdef _M_IX86 || _M_IA64 || _M_X64
+#if defined(_M_IX86) || defined(_M_IA64) || defined(_M_X64)
 # define __LITTLE_ENDIAN__
 #endif
 #else /* _MSC_VER */
