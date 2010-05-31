@@ -5,7 +5,7 @@ c1=Extension('_geohash',
 	define_macros = [('PYTHON_MODULE',1),])
 
 setup(name='python-geohash',
-	version='0.5',
+	version='0.6',
 	description='Fast, accurate python geohashing library',
 	author='Hiroaki Kawai',
 	url='http://code.google.com/p/python-geohash/',
