@@ -1,3 +1,7 @@
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 enum {
 	GEOHASH_OK,
 	GEOHASH_NOTSUPPORTED,
@@ -6,6 +10,11 @@ enum {
 
 int geohash_encode(double latitude, double longitude, char* r, size_t capacity);
 int geohash_decode(char* r, size_t length, double *latitude, double *longitude);
+
+#ifdef __cplusplus
+}
+#endif
+
 
 /*
 int main(int argc,char* argv[]){
