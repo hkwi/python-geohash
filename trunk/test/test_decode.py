@@ -54,3 +54,5 @@ class TestDecode(unittest.TestCase):
 		self.assertEqual(round(x['s'],3), 42.583)
 		self.assertEqual(round(x['n'],3), 42.627)
 
+# if __name__=='__main__':
+# 	unittest.main()

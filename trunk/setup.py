@@ -1,7 +1,7 @@
 from distutils.core import setup, Extension
 
 c1=Extension('_geohash',
-	sources=['src/geohash.c',],
+	sources=['src/geohash.cpp',],
 	define_macros = [('PYTHON_MODULE',1),])
 
 setup(name='python-geohash',
