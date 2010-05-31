@@ -1,8 +1,11 @@
 #include <stdio.h>
 #include <math.h>
+#include <string.h>
 #include "geohash.h"
 
 #if defined(_MSC_VER) && (_MSC_VER <= 1500)
+typedef unsigned __int8 uint8_t;
+typedef unsigned __int16 uint16_t;
 typedef unsigned __int64 uint64_t;
 #define UINT64_C(C) ((uint64_t) C ## ULL)
 #else
@@ -116,7 +119,7 @@ static PyObject *py_geohash_neighbors(PyObject *self, PyObject *args) {
 		 0x15, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B, 0x1C,
 		 0x1D, 0x1E, 0x1F,  '|',  '|',  '|',  '|',  '|',
 	};
-	static const char rmap[32]="0123456789bcdefghjkmnpqrstuvwxyz";
+	static const char rmap[33]="0123456789bcdefghjkmnpqrstuvwxyz";
 	uint64_t lat, lon;
 	char *hashcode;
 	if(!PyArg_ParseTuple(args, "s", &hashcode)) return NULL;
@@ -151,7 +154,7 @@ static PyObject *py_geohash_neighbors(PyObject *self, PyObject *args) {
 	int au=2;
 	if(lat==0){
 		al=0; au=2;
-	}else if(lat+1==(1<<(length/2*5+length%2*2))){
+	}else if(lat+1==(UINT64_C(1)<<(length/2*5+length%2*2))){
 		al=-1; au=1;
 	}
 	int blen=length+1; // block length
@@ -185,7 +188,7 @@ static PyObject *py_geohash_neighbors(PyObject *self, PyObject *args) {
 	PyObject *ret;
 	if(lat==0){
 		ret= Py_BuildValue("[sssss]",&buffer[0],&buffer[blen],&buffer[blen*2],&buffer[blen*3],&buffer[blen*4]);
-	}else if(lat+1==(1<<(cshift/2*5+cshift%2*2))){
+	}else if(lat+1==(UINT64_C(1)<<(cshift/2*5+cshift%2*2))){
 		ret= Py_BuildValue("[sssss]",&buffer[0],&buffer[blen],&buffer[blen*2],&buffer[blen*3],&buffer[blen*4]);
 	}else{
 		ret= Py_BuildValue("[ssssssss]",&buffer[0],&buffer[blen],&buffer[blen*2],&buffer[blen*3],
@@ -204,11 +207,11 @@ static PyMethodDef GeohashMethods[] = {
 
 PyMODINIT_FUNC init_geohash(void){
 	(void)Py_InitModule("_geohash", GeohashMethods);
-}
+};
 #endif /* PYTHON_MODULE */
 
 static inline uint64_t interleave(uint8_t upper, uint8_t lower){
-	static const uint16_t map[] = {
+	static const uint16_t map[255] = {
 		UINT64_C(0x0000), UINT64_C(0x0001), UINT64_C(0x0004), UINT64_C(0x0005), UINT64_C(0x0010), UINT64_C(0x0011), 
 		UINT64_C(0x0014), UINT64_C(0x0015), UINT64_C(0x0040), UINT64_C(0x0041), UINT64_C(0x0044), UINT64_C(0x0045), 
 		UINT64_C(0x0050), UINT64_C(0x0051), UINT64_C(0x0054), UINT64_C(0x0055), UINT64_C(0x0100), UINT64_C(0x0101), 
@@ -378,7 +381,7 @@ int geohash_decode(char* r, size_t length, double *latitude, double *longitude){
 		 0x15, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B, 0x1C,
 		 0x1D, 0x1E, 0x1F,  '|',  '|',  '|',  '|',  '|',
 	};
-	int cshift=0;
+	unsigned int cshift=0;
 	if(length>25){ length=25; } // round if the hashcode is too long (over 64bit)
 	union {
 		double d; // assuming IEEE 754-1985 binary64. This might not be true on some CPU (I don't know which).
