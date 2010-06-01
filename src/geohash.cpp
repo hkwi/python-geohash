@@ -212,7 +212,7 @@ PyMODINIT_FUNC init_geohash(void){
 #endif /* PYTHON_MODULE */
 
 static inline uint64_t interleave(uint8_t upper, uint8_t lower){
-	static const uint16_t map[255] = {
+	static const uint64_t map[255] = {
 		UINT64_C(0x0000), UINT64_C(0x0001), UINT64_C(0x0004), UINT64_C(0x0005), UINT64_C(0x0010), UINT64_C(0x0011), 
 		UINT64_C(0x0014), UINT64_C(0x0015), UINT64_C(0x0040), UINT64_C(0x0041), UINT64_C(0x0044), UINT64_C(0x0045), 
 		UINT64_C(0x0050), UINT64_C(0x0051), UINT64_C(0x0054), UINT64_C(0x0055), UINT64_C(0x0100), UINT64_C(0x0101), 
@@ -314,14 +314,14 @@ int geohash_encode(double latitude, double longitude, char* r, size_t capacity){
 	
 	uint64_t idx0,idx1;
 	idx0 = idx1 = 0;
-	idx1 |= interleave(lon.i64>>56, lat.i64>>56)<<48;
-	idx1 |= interleave(lon.i64>>48, lat.i64>>48)<<32;
-	idx1 |= interleave(lon.i64>>40, lat.i64>>40)<<16;
-	idx1 |= interleave(lon.i64>>32, lat.i64>>32);
-	idx0 |= interleave(lon.i64>>24, lat.i64>>24)<<48;
-	idx0 |= interleave(lon.i64>>16, lat.i64>>16)<<32;
-	idx0 |= interleave(lon.i64>>8, lat.i64>>8)<<16;
-	idx0 |= interleave(lon.i64, lat.i64);
+	idx1 |= interleave((uint8_t)(lon.i64>>56), (uint8_t)(lat.i64>>56))<<48;
+	idx1 |= interleave((uint8_t)(lon.i64>>48), (uint8_t)(lat.i64>>48))<<32;
+	idx1 |= interleave((uint8_t)(lon.i64>>40), (uint8_t)(lat.i64>>40))<<16;
+	idx1 |= interleave((uint8_t)(lon.i64>>32), (uint8_t)(lat.i64>>32));
+	idx0 |= interleave((uint8_t)(lon.i64>>24), (uint8_t)(lat.i64>>24))<<48;
+	idx0 |= interleave((uint8_t)(lon.i64>>16), (uint8_t)(lat.i64>>16))<<32;
+	idx0 |= interleave((uint8_t)(lon.i64>>8),  (uint8_t)(lat.i64>>8))<<16;
+	idx0 |= interleave((uint8_t)lon.i64, (uint8_t)lat.i64);
 	lr[0] = map[(idx1>>59)&0x1F];
 	lr[1] = map[(idx1>>54)&0x1F];
 	lr[2] = map[(idx1>>49)&0x1F];
