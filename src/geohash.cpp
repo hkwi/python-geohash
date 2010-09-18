@@ -212,7 +212,7 @@ PyMODINIT_FUNC init_geohash(void){
 #endif /* PYTHON_MODULE */
 
 static inline uint64_t interleave(uint8_t upper, uint8_t lower){
-	static const uint64_t map[255] = {
+	static const uint64_t map[256] = {
 		UINT64_C(0x0000), UINT64_C(0x0001), UINT64_C(0x0004), UINT64_C(0x0005), UINT64_C(0x0010), UINT64_C(0x0011), 
 		UINT64_C(0x0014), UINT64_C(0x0015), UINT64_C(0x0040), UINT64_C(0x0041), UINT64_C(0x0044), UINT64_C(0x0045), 
 		UINT64_C(0x0050), UINT64_C(0x0051), UINT64_C(0x0054), UINT64_C(0x0055), UINT64_C(0x0100), UINT64_C(0x0101), 
@@ -255,7 +255,7 @@ static inline uint64_t interleave(uint8_t upper, uint8_t lower){
 		UINT64_C(0x5444), UINT64_C(0x5445), UINT64_C(0x5450), UINT64_C(0x5451), UINT64_C(0x5454), UINT64_C(0x5455), 
 		UINT64_C(0x5500), UINT64_C(0x5501), UINT64_C(0x5504), UINT64_C(0x5505), UINT64_C(0x5510), UINT64_C(0x5511), 
 		UINT64_C(0x5514), UINT64_C(0x5515), UINT64_C(0x5540), UINT64_C(0x5541), UINT64_C(0x5544), UINT64_C(0x5545), 
-		UINT64_C(0x5550), UINT64_C(0x5551), UINT64_C(0x5554)
+		UINT64_C(0x5550), UINT64_C(0x5551), UINT64_C(0x5554), UINT64_C(0x5555)
 	};
 	return (map[upper]<<1)+map[lower];
 }
