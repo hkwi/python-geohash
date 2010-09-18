@@ -64,8 +64,9 @@ def encode(latitude, longitude, precision=12):
 	lat = latitude/180.0
 	lon = longitude/360.0
 	
-	lat_length=lon_length=precision*5/2
-	if precision%2==1:
+	xprecision=precision+1
+	lat_length=lon_length=xprecision*5/2
+	if xprecision%2==1:
 		lon_length+=1
 	
 	if lat>0:
@@ -78,7 +79,7 @@ def encode(latitude, longitude, precision=12):
 	else:
 		lon = (1<<lon_length-1)-int((1<<lon_length)*(-lon))
 	
-	return _encode_i2c(lat,lon,lat_length,lon_length)
+	return _encode_i2c(lat,lon,lat_length,lon_length)[:precision]
 
 def _decode_c2i(hashcode):
 	lon = 0
