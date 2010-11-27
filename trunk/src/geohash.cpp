@@ -206,9 +206,29 @@ static PyMethodDef GeohashMethods[] = {
 	{NULL, NULL, 0, NULL}
 };
 
+#ifdef Py_InitModule
 PyMODINIT_FUNC init_geohash(void){
 	(void)Py_InitModule("_geohash", GeohashMethods);
+}
+#else
+PyDoc_STRVAR(module_doc, "geohash speedups");
+
+static struct PyModuleDef geohash_moduledef = {
+	PyModuleDef_HEAD_INIT,
+	"_geohash",
+	module_doc,
+	-1,
+	GeohashMethods,
+	NULL,
+	NULL,
+	NULL,
+	NULL
 };
+PyMODINIT_FUNC PyInit__geohash(void){
+	return PyModule_Create(&geohash_moduledef);
+};
+#endif /* Py_InitModule */
+
 #endif /* PYTHON_MODULE */
 
 static inline uint64_t interleave(uint8_t upper, uint8_t lower){
