@@ -120,8 +120,8 @@ def decode(hashcode, delta=False):
 	'''
 	if _geohash:
 		(lat,lon,lat_bits,lon_bits) = _geohash.decode(hashcode)
-		latitude_delta = 180.0/(2<<lat_bits)
-		longitude_delta = 360.0/(2<<lon_bits)
+		latitude_delta = 90.0/(1<<lat_bits)
+		longitude_delta = 180.0/(1<<lon_bits)
 		latitude = lat + latitude_delta
 		longitude = lon + longitude_delta
 		if delta:
