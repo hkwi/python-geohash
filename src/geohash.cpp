@@ -3,6 +3,8 @@ extern "C" {
 #include <string.h>
 #include <stdlib.h>
 
+// on Windows, __STDC_IEC_559__ not defined
+
 #if defined(_MSC_VER) && (_MSC_VER <= 1500)
 typedef unsigned __int8 uint8_t;
 typedef unsigned __int16 uint16_t;
@@ -154,34 +156,51 @@ int interleaved_to_geohashstr(uint16_t *interleaved, size_t length, char* dst, s
 	if(dst_length*5 < length*16){
 		return GEOHASH_INTERNALERROR;
 	}
-	for(unsigned int i=0; i<dst_length; i++){
-		dst[i] = '\0';
+	
+	unsigned char *w = (unsigned char*)dst;
+	uint16_t *i = interleaved;
+	for(unsigned int j=0; j<dst_length/16; j++){
+		w[ 0] = (unsigned char)( i[0]>>11);
+		w[ 1] = (unsigned char)( i[0]>>6);
+		w[ 2] = (unsigned char)( i[0]>>1);
+		w[ 3] = (unsigned char)((i[1]>>12) + (i[0]<<4));
+		w[ 4] = (unsigned char)( i[1]>>7);
+		w[ 5] = (unsigned char)( i[1]>>2);
+		w[ 6] = (unsigned char)((i[2]>>13) + (i[1]<<3));
+		w[ 7] = (unsigned char)( i[2]>>8);
+		w[ 8] = (unsigned char)( i[2]>>3);
+		w[ 9] = (unsigned char)((i[3]>>14) + (i[2]<<2));
+		w[10] = (unsigned char)( i[3]>>9);
+		w[11] = (unsigned char)( i[3]>>4);
+		w[12] = (unsigned char)((i[4]>>15) + (i[3]<<1));
+		w[13] = (unsigned char)( i[4]>>10);
+		w[14] = (unsigned char)( i[4]>>5);
+		w[15] = (unsigned char)( i[4]);
+		i+=5;
+		w+=16;
 	}
-	for(unsigned int i=0; i<length; i++){
-		if(i%5==0){
-			dst[3*i] = map[(interleaved[i]>>(11+i%5)) & 0x1F];
-		}else{
-			dst[3*i] = map[((interleaved[i]>>(11+i%5)) & 0x1F) + ((interleaved[i-1]<<(5-i%5)) & 0x1F)];
-		}
-		dst[3*i+1] = map[(interleaved[i]>>(6+i%5)) & 0x1F];
-		dst[3*i+2] = map[(interleaved[i]>>(1+i%5)) & 0x1F];
+	for(unsigned int j=0; j<dst_length%16; j++){
+		if(j== 0) w[ 0] = (unsigned char)( i[0]>>11);
+		if(j== 1) w[ 1] = (unsigned char)( i[0]>>6);
+		if(j== 2) w[ 2] = (unsigned char)( i[0]>>1);
+		if(j== 3) w[ 3] = (unsigned char)((i[1]>>12) + (i[0]<<4));
+		if(j== 4) w[ 4] = (unsigned char)( i[1]>>7);
+		if(j== 5) w[ 5] = (unsigned char)( i[1]>>2);
+		if(j== 6) w[ 6] = (unsigned char)((i[2]>>13) + (i[1]<<3));
+		if(j== 7) w[ 7] = (unsigned char)( i[2]>>8);
+		if(j== 8) w[ 8] = (unsigned char)( i[2]>>3);
+		if(j== 9) w[ 9] = (unsigned char)((i[3]>>14) + (i[2]<<2));
+		if(j==10) w[10] = (unsigned char)( i[3]>>9);
+		if(j==11) w[11] = (unsigned char)( i[3]>>4);
+		if(j==12) w[12] = (unsigned char)((i[4]>>15) + (i[3]<<1));
+		if(j==13) w[13] = (unsigned char)( i[4]>>10);
+		if(j==14) w[14] = (unsigned char)( i[4]>>5);
+		if(j==15) w[15] = (unsigned char)( i[4]);
+	}
+	for(unsigned int j=0; j<dst_length; j++){
+		dst[j] = map[dst[j]&0x1F];
 	}
 	return GEOHASH_OK;
-// 	lr[0]  = map[ interleaved[0]>>11];
-// 	lr[1]  = map[ (interleaved[0]>>6) &0x1F];
-// 	lr[2]  = map[ (interleaved[0]>>1) &0x1F];
-// 	lr[3]  = map[((interleaved[1]>>12)&0x1F) + ((interleaved[0]<<4)&0x1F)];
-// 	lr[4]  = map[ (interleaved[1]>>7) &0x1F];
-// 	lr[5]  = map[ (interleaved[1]>>2) &0x1F];
-// 	lr[6]  = map[((interleaved[2]>>13)&0x1F) + ((interleaved[1]<<3)&0x1F)];
-// 	lr[7]  = map[ (interleaved[2]>>8) &0x1F];
-// 	lr[8]  = map[ (interleaved[2]>>3) &0x1F];
-// 	lr[9]  = map[((interleaved[3]>>14)&0x1F) + ((interleaved[2]<<2)&0x1F)];
-// 	lr[10] = map[ (interleaved[3]>>9) &0x1F];
-// 	lr[11] = map[ (interleaved[3]>>4) &0x1F];
-// 	lr[12] = map[((interleaved[4]>>15)&0x1F) + ((interleaved[3]<<1)&0x1F)];
-// 	lr[13] = map[ (interleaved[4]>>10)&0x1F];
-// 	lr[14] = map[ (interleaved[4]>>5) &0x1F];
 }
 
 /*
