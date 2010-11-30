@@ -268,19 +268,42 @@ int geohashstr_to_interleaved(char* r, size_t length, uint16_t *interleaved, siz
 			return GEOHASH_INVALIDCODE;
 		}
 	}
-	for(unsigned int i=0; i<dst_count; i++){
-		interleaved[i] = 0;
+	for(unsigned int j=0; j<dst_count; j++){
+		interleaved[j]=0;
 	}
-	for(unsigned int i=0; i<length; i++){
-		if(i%3==0 && i%15!=0){
-			interleaved[i/3-1] += map[(unsigned char)r[i]]>>(5 - (i%15)/3);
-		}
-		interleaved[i/3] += map[(unsigned char)r[i]]<<((16 + i/3 - 5*(i%3+1))%16);
-// 		interleaved[0] = (map[lr[ 0]]<<11) + (map[lr[ 1]]<< 6) + (map[lr[ 2]]<<1) + (map[lr[ 3]]>>4);
-// 		interleaved[1] = (map[lr[ 3]]<<12) + (map[lr[ 4]]<< 7) + (map[lr[ 5]]<<2) + (map[lr[ 6]]>>3);
-// 		interleaved[2] = (map[lr[ 6]]<<13) + (map[lr[ 7]]<< 8) + (map[lr[ 8]]<<3) + (map[lr[ 9]]>>2);
-// 		interleaved[3] = (map[lr[ 9]]<<14) + (map[lr[10]]<< 9) + (map[lr[11]]<<4) + (map[lr[12]]>>1);
-// 		interleaved[4] = (map[lr[12]]<<15) + (map[lr[13]]<<10) + (map[lr[14]]<<5) +  map[lr[15]];
+	
+	uint16_t *i = interleaved;
+	unsigned char *c = (unsigned char*)r;
+	for(unsigned int j=0; j<length/16; j++){
+		i[0] = (map[c[ 0]]<<11) + (map[c[ 1]]<< 6) + (map[c[ 2]]<<1) + (map[c[ 3]]>>4);
+		i[1] = (map[c[ 3]]<<12) + (map[c[ 4]]<< 7) + (map[c[ 5]]<<2) + (map[c[ 6]]>>3);
+		i[2] = (map[c[ 6]]<<13) + (map[c[ 7]]<< 8) + (map[c[ 8]]<<3) + (map[c[ 9]]>>2);
+		i[3] = (map[c[ 9]]<<14) + (map[c[10]]<< 9) + (map[c[11]]<<4) + (map[c[12]]>>1);
+		i[4] = (map[c[12]]<<15) + (map[c[13]]<<10) + (map[c[14]]<<5) + (map[c[15]]>>0);
+		i+=5;
+		c+=16;
+	}
+	for(unsigned int j=0; j<length%16; j++){
+		if(j== 0) i[0]  = map[c[ 0]]<<11;
+		if(j== 1) i[0] += map[c[ 1]]<< 6;
+		if(j== 2) i[0] += map[c[ 2]]<< 1;
+		if(j== 3) i[0] += map[c[ 3]]>> 4;
+		if(j== 3) i[1]  = map[c[ 3]]<<12;
+		if(j== 4) i[1] += map[c[ 4]]<< 7;
+		if(j== 5) i[1] += map[c[ 5]]<< 2;
+		if(j== 6) i[1] += map[c[ 6]]>> 3;
+		if(j== 6) i[2]  = map[c[ 6]]<<13;
+		if(j== 7) i[2] += map[c[ 7]]<< 8;
+		if(j== 8) i[2] += map[c[ 8]]<< 3;
+		if(j== 9) i[2] += map[c[ 9]]>> 2;
+		if(j== 9) i[3]  = map[c[ 9]]<<14;
+		if(j==10) i[3] += map[c[10]]<< 9;
+		if(j==11) i[3] += map[c[11]]<< 4;
+		if(j==12) i[3] += map[c[12]]>> 1;
+		if(j==12) i[4]  = map[c[12]]<<15;
+		if(j==13) i[4] += map[c[13]]<<10;
+		if(j==14) i[4] += map[c[14]]<< 5;
+		if(j==15) i[4] += map[c[15]]>> 0;
 	}
 	return GEOHASH_OK;
 }
