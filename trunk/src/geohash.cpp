@@ -206,7 +206,7 @@ static int interleaved_to_geohashstr(uint16_t *interleaved, size_t length, char*
 /*
   latitude must be in [-90.0, 90.0) and longitude must be in [-180.0 180.0)
 */
-int geohash_encode(double latitude, double longitude, char* r, size_t capacity){
+static int geohash_encode_impl(double latitude, double longitude, char* r, size_t capacity){
 	uint64_t lat64, lon64;
 	uint16_t interleaved[8];
 	char lr[27];
@@ -233,6 +233,9 @@ int geohash_encode(double latitude, double longitude, char* r, size_t capacity){
 		}
 	}
 	return GEOHASH_OK;
+}
+int geohash_encode(double latitude, double longitude, char* r, size_t capacity){
+	return geohash_encode_impl(latitude, longitude, r, capacity);
 }
 
 /**
@@ -311,7 +314,7 @@ static int geohashstr_to_interleaved(char* r, size_t length, uint16_t *interleav
 /*
    (latitude, longitude) will be that of south west point.
 */
-int geohash_decode(char* r, size_t length, double *latitude, double *longitude){
+static int geohash_decode_impl(char* r, size_t length, double *latitude, double *longitude){
 	uint16_t interleaved[8];
 	int ret = GEOHASH_OK;
 	if((ret=geohashstr_to_interleaved(r, length, interleaved, 8)) != GEOHASH_OK){
@@ -335,6 +338,9 @@ int geohash_decode(char* r, size_t length, double *latitude, double *longitude){
 	*longitude = t*180.0;
 	
 	return GEOHASH_OK;
+}
+int geohash_decode(char* r, size_t length, double *latitude, double *longitude){
+	return geohash_decode_impl(r, length, latitude, longitude);
 }
 
 /**
@@ -453,7 +459,7 @@ static int neighbors(uint16_t *interleaved, size_t bitlength, uint16_t* dst, siz
 	return GEOHASH_OK;
 }
 
-int geo_neighbors(char *hashcode, char* dst, size_t dst_length, int *string_count){
+static int geo_neighbors_impl(char *hashcode, char* dst, size_t dst_length, int *string_count){
 	int ret = GEOHASH_OK;
 	size_t hashcode_length = strlen(hashcode);
 	size_t interleaved_length = 0;
@@ -504,7 +510,9 @@ int geo_neighbors(char *hashcode, char* dst, size_t dst_length, int *string_coun
 	
 	return GEOHASH_OK;
 }
-
+int geo_neighbors(char *hashcode, char* dst, size_t dst_length, int *string_count){
+	return geo_neighbors_impl(hashcode, dst, dst_length, string_count);
+}
 
 #ifdef PYTHON_MODULE
 #include <Python.h>
@@ -524,7 +532,7 @@ static PyObject *py_geohash_encode(PyObject *self, PyObject *args) {
 	
 	if(!PyArg_ParseTuple(args, "dd", &latitude, &longitude)) return NULL;
 	
-	if((ret=geohash_encode(latitude,longitude,hashcode,28))!=GEOHASH_OK){
+	if((ret=geohash_encode_impl(latitude,longitude,hashcode,28))!=GEOHASH_OK){
 		set_error(ret);
 		return NULL;
 	}
@@ -541,7 +549,7 @@ static PyObject *py_geohash_decode(PyObject *self, PyObject *args) {
 	if(!PyArg_ParseTuple(args, "s", &hashcode)) return NULL;
 	
 	codelen = strlen(hashcode);
-	if((ret=geohash_decode(hashcode,codelen,&latitude,&longitude))!=GEOHASH_OK){
+	if((ret=geohash_decode_impl(hashcode,codelen,&latitude,&longitude))!=GEOHASH_OK){
 		set_error(ret);
 		return NULL;
 	}
@@ -562,7 +570,7 @@ static PyObject *py_geohash_neighbors(PyObject *self, PyObject *args) {
 	}
 	int ret;
 	int string_count = 0;
-	if((ret = geo_neighbors(hashcode, buffer, buffer_sz, &string_count)) != GEOHASH_OK){
+	if((ret = geo_neighbors_impl(hashcode, buffer, buffer_sz, &string_count)) != GEOHASH_OK){
 		set_error(ret);
 	}
 	
