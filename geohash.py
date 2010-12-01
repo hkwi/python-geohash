@@ -4,7 +4,7 @@ Copyright (C) 2009 Hiroaki Kawai <kawai@iij.ad.jp>
 """
 try:
 	import _geohash
-except ImportError as e:
+except ImportError:
 	_geohash = None
 
 __all__ = ['encode','decode','decode_exactly','bbox', 'neighbors', 'expand']
