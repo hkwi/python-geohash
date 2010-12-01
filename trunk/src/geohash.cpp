@@ -151,7 +151,7 @@ static inline void i64_to_double(uint64_t in, double *out){
 	*out = x.d;
 }
 
-int interleaved_to_geohashstr(uint16_t *interleaved, size_t length, char* dst, size_t dst_length){
+static int interleaved_to_geohashstr(uint16_t *interleaved, size_t length, char* dst, size_t dst_length){
 	static const char* map="0123456789bcdefghjkmnpqrstuvwxyz";
 	if(dst_length*5 < length*16){
 		return GEOHASH_INTERNALERROR;
@@ -238,7 +238,7 @@ int geohash_encode(double latitude, double longitude, char* r, size_t capacity){
 /**
  * handle geohash string decoding operation
  */
-int geohashstr_to_interleaved(char* r, size_t length, uint16_t *interleaved, size_t dst_count){
+static int geohashstr_to_interleaved(char* r, size_t length, uint16_t *interleaved, size_t dst_count){
 	static const unsigned char map[128] = {
 		  '|',  '|',  '|',  '|',  '|',  '|',  '|',  '|',
 		  '|',  '|',  '|',  '|',  '|',  '|',  '|',  '|',
