@@ -608,29 +608,89 @@ static PyObject *py_geoint_encode(PyObject *self, PyObject *args){
 	for(int i=0; i<8; i++){
 		interleaved[7-i] = interleave((uint8_t)(lon64>>(i*8)), (uint8_t)(lat64>>(i*8)));
 	}
-	char hexcode[33];
-	for(unsigned int i=0; i<8; i++){
-		sprintf(hexcode+i*4, "%04x", interleaved[i]);
-	}
-	hexcode[32] = '\0';
-	
-	return Py_BuildValue("s", hexcode);
+
+	PyObject *ret = NULL;
+#if UINT64_MAX <= ULLONG_MAX
+	ret = PyTuple_New(2);
+	PY_LONG_LONG li;
+	li = ((PY_LONG_LONG)interleaved[0]<<48) + ((PY_LONG_LONG)interleaved[1]<<32) + ((PY_LONG_LONG)interleaved[2]<<16) + (PY_LONG_LONG)interleaved[3];
+	PyTuple_SET_ITEM(ret, 0, PyLong_FromUnsignedLongLong(li));
+	li = ((PY_LONG_LONG)interleaved[4]<<48) + ((PY_LONG_LONG)interleaved[5]<<32) + ((PY_LONG_LONG)interleaved[6]<<16) + (PY_LONG_LONG)interleaved[7];
+	PyTuple_SET_ITEM(ret, 1, PyLong_FromUnsignedLongLong(li));
+#elif UINT32_MAX <= ULLONG_MAX
+	ret = PyTuple_New(4);
+	PY_LONG_LONG li;
+	li = ((PY_LONG_LONG)interleaved[0]<<16) + (PY_LONG_LONG)interleaved[1];
+	PyTuple_SET_ITEM(ret, 0, PyLong_FromUnsignedLongLong(li));
+	li = ((PY_LONG_LONG)interleaved[1]<<16) + (PY_LONG_LONG)interleaved[3];
+	PyTuple_SET_ITEM(ret, 1, PyLong_FromUnsignedLongLong(li));
+	li = ((PY_LONG_LONG)interleaved[2]<<16) + (PY_LONG_LONG)interleaved[5];
+	PyTuple_SET_ITEM(ret, 2, PyLong_FromUnsignedLongLong(li));
+	li = ((PY_LONG_LONG)interleaved[3]<<16) + (PY_LONG_LONG)interleaved[7];
+	PyTuple_SET_ITEM(ret, 3, PyLong_FromUnsignedLongLong(li));
+#elif UINT16_MAX <= ULLONG_MAX
+	ret = PyTuple_New(8);
+	PyTuple_SET_ITEM(ret, 0, PyLong_FromUnsignedLongLong((PY_LONG_LONG)interleaved[0]));
+	PyTuple_SET_ITEM(ret, 1, PyLong_FromUnsignedLongLong((PY_LONG_LONG)interleaved[1]));
+	PyTuple_SET_ITEM(ret, 2, PyLong_FromUnsignedLongLong((PY_LONG_LONG)interleaved[2]));
+	PyTuple_SET_ITEM(ret, 3, PyLong_FromUnsignedLongLong((PY_LONG_LONG)interleaved[3]));
+	PyTuple_SET_ITEM(ret, 4, PyLong_FromUnsignedLongLong((PY_LONG_LONG)interleaved[4]));
+	PyTuple_SET_ITEM(ret, 5, PyLong_FromUnsignedLongLong((PY_LONG_LONG)interleaved[5]));
+	PyTuple_SET_ITEM(ret, 6, PyLong_FromUnsignedLongLong((PY_LONG_LONG)interleaved[6]));
+	PyTuple_SET_ITEM(ret, 7, PyLong_FromUnsignedLongLong((PY_LONG_LONG)interleaved[7]));
+#else
+#error "This platform not supported"
+#endif // UINT64_MAX <= ULLONG_MAX
+	return ret;
 }
 
 static PyObject *py_geoint_decode(PyObject *self, PyObject *args){
-	char *hexcode;
-	if(!PyArg_ParseTuple(args, "s", &hexcode)) return NULL;
-	if(strlen(hexcode)!=32){
-		PyErr_SetString(PyExc_ValueError, "input string must be 32chars");
+	uint16_t interleaved[8];
+#if PY_MAJOR_VERSION >= 3 || (PY_MAJOR_VERSION >=2 && PY_MINOR_VERSION >= 5)
+	Py_ssize_t sz = PyTuple_GET_SIZE(args);
+#else
+	int sz = PyTuple_GET_SIZE(args);
+#endif
+	if(sz==2){
+		PY_LONG_LONG lo;
+		lo = PyLong_AsUnsignedLongLong(PyTuple_GET_ITEM(args,0));
+		interleaved[0] = (uint16_t)(lo>>48);
+		interleaved[1] = (uint16_t)(lo>>32);
+		interleaved[2] = (uint16_t)(lo>>16);
+		interleaved[3] = (uint16_t)lo;
+		lo = PyLong_AsUnsignedLongLong(PyTuple_GET_ITEM(args,1));
+		interleaved[4] = (uint16_t)(lo>>48);
+		interleaved[5] = (uint16_t)(lo>>32);
+		interleaved[6] = (uint16_t)(lo>>16);
+		interleaved[7] = (uint16_t)lo;
+	}else if(sz==4){
+		PY_LONG_LONG lo;
+		lo = PyLong_AsUnsignedLongLong(PyTuple_GET_ITEM(args,0));
+		interleaved[0] = (uint16_t)(lo>>16);
+		interleaved[1] = (uint16_t)lo;
+		lo = PyLong_AsUnsignedLongLong(PyTuple_GET_ITEM(args,1));
+		interleaved[2] = (uint16_t)(lo>>16);
+		interleaved[3] = (uint16_t)lo;
+		lo = PyLong_AsUnsignedLongLong(PyTuple_GET_ITEM(args,2));
+		interleaved[4] = (uint16_t)(lo>>16);
+		interleaved[5] = (uint16_t)lo;
+		lo = PyLong_AsUnsignedLongLong(PyTuple_GET_ITEM(args,3));
+		interleaved[6] = (uint16_t)(lo>>16);
+		interleaved[7] = (uint16_t)lo;
+	}else if(sz==8){
+		interleaved[0] = (uint16_t)PyLong_AsUnsignedLongLong(PyTuple_GET_ITEM(args,0));
+		interleaved[1] = (uint16_t)PyLong_AsUnsignedLongLong(PyTuple_GET_ITEM(args,1));
+		interleaved[2] = (uint16_t)PyLong_AsUnsignedLongLong(PyTuple_GET_ITEM(args,2));
+		interleaved[3] = (uint16_t)PyLong_AsUnsignedLongLong(PyTuple_GET_ITEM(args,3));
+		interleaved[4] = (uint16_t)PyLong_AsUnsignedLongLong(PyTuple_GET_ITEM(args,4));
+		interleaved[5] = (uint16_t)PyLong_AsUnsignedLongLong(PyTuple_GET_ITEM(args,5));
+		interleaved[6] = (uint16_t)PyLong_AsUnsignedLongLong(PyTuple_GET_ITEM(args,6));
+		interleaved[7] = (uint16_t)PyLong_AsUnsignedLongLong(PyTuple_GET_ITEM(args,7));
+	}else{
+		PyErr_SetString(PyExc_ValueError, "Argument must be 2, 4 or 8 integers.");
 		return NULL;
 	}
 	
-	uint16_t interleaved[8];
-	for(int i=0; i<8; i++){
-		unsigned int t;
-		sscanf(hexcode+i*4, "%04x", &t);
-		interleaved[i] = (uint16_t)t;
-	}
 	uint64_t lat64=0;
 	uint64_t lon64=0;
 	for(int i=0; i<8; i++){
@@ -650,8 +710,8 @@ static PyMethodDef GeohashMethods[] = {
 	{"encode", py_geohash_encode, METH_VARARGS, "geohash encoding."},
 	{"decode", py_geohash_decode, METH_VARARGS, "geohash decoding."},
 	{"neighbors", py_geohash_neighbors, METH_VARARGS, "geohash neighbor codes",},
-	{"encode_int", py_geoint_encode, METH_VARARGS, "encode geometric coordinates into 128bit interleaved integer(hex 32chars)"},
-	{"decode_int", py_geoint_decode, METH_VARARGS, "decode 128bit interleaved integer(hex 32chars) into geometric coordinates"},
+	{"encode_int", py_geoint_encode, METH_VARARGS, "encode geometric coordinates into 128bit interleaved integer(divided into some integers)"},
+	{"decode_int", py_geoint_decode, METH_VARARGS, "decode 128bit interleaved integer(divided into some integers) into geometric coordinates"},
 	{NULL, NULL, 0, NULL}
 };
 
