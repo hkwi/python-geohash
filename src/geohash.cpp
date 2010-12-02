@@ -315,9 +315,11 @@ static int geohashstr_to_interleaved(char* r, size_t length, uint16_t *interleav
    (latitude, longitude) will be that of south west point.
 */
 static int geohash_decode_impl(char* r, size_t length, double *latitude, double *longitude){
-	uint16_t interleaved[8];
+	size_t intr_length = length*5/16+1;
+	intr_length = intr_length < 8 ? 8 : intr_length;
+	uint16_t interleaved[intr_length];
 	int ret = GEOHASH_OK;
-	if((ret=geohashstr_to_interleaved(r, length, interleaved, 8)) != GEOHASH_OK){
+	if((ret=geohashstr_to_interleaved(r, length, interleaved, intr_length)) != GEOHASH_OK){
 		return ret;
 	}
 	uint64_t lat64=0;
@@ -593,10 +595,63 @@ static PyObject *py_geohash_neighbors(PyObject *self, PyObject *args) {
 	return obj;
 }
 
+static PyObject *py_geoint_encode(PyObject *self, PyObject *args){
+	double latitude;
+	double longitude;
+	if(!PyArg_ParseTuple(args, "dd", &latitude, &longitude)) return NULL;
+	
+	uint64_t lat64, lon64;
+	if(!double_to_i64(latitude/90.0, &lat64) || !double_to_i64(longitude/180.0, &lon64)){
+		return NULL;
+	}
+	uint16_t interleaved[8];
+	for(int i=0; i<8; i++){
+		interleaved[7-i] = interleave((uint8_t)(lon64>>(i*8)), (uint8_t)(lat64>>(i*8)));
+	}
+	char hexcode[33];
+	for(unsigned int i=0; i<8; i++){
+		sprintf(hexcode+i*4, "%04x", interleaved[i]);
+	}
+	hexcode[32] = '\0';
+	
+	return Py_BuildValue("s", hexcode);
+}
+
+static PyObject *py_geoint_decode(PyObject *self, PyObject *args){
+	char *hexcode;
+	if(!PyArg_ParseTuple(args, "s", &hexcode)) return NULL;
+	if(strlen(hexcode)!=32){
+		PyErr_SetString(PyExc_ValueError, "input string must be 32chars");
+		return NULL;
+	}
+	
+	uint16_t interleaved[8];
+	for(int i=0; i<8; i++){
+		unsigned int t;
+		sscanf(hexcode+i*4, "%04x", &t);
+		interleaved[i] = (uint16_t)t;
+	}
+	uint64_t lat64=0;
+	uint64_t lon64=0;
+	for(int i=0; i<8; i++){
+		uint8_t upper, lower;
+		deinterleave(interleaved[i], &upper, &lower);
+		lon64 = (lon64<<8)+upper;
+		lat64 = (lat64<<8)+lower;
+	}
+	double tlat, tlon;
+	i64_to_double(lat64, &tlat);
+	i64_to_double(lon64, &tlon);
+	
+	return Py_BuildValue("(dd)", tlat*90.0, tlon*180.0);
+}
+
 static PyMethodDef GeohashMethods[] = {
 	{"encode", py_geohash_encode, METH_VARARGS, "geohash encoding."},
 	{"decode", py_geohash_decode, METH_VARARGS, "geohash decoding."},
 	{"neighbors", py_geohash_neighbors, METH_VARARGS, "geohash neighbor codes",},
+	{"encode_int", py_geoint_encode, METH_VARARGS, "encode geometric coordinates into 128bit interleaved integer(hex 32chars)"},
+	{"decode_int", py_geoint_decode, METH_VARARGS, "decode 128bit interleaved integer(hex 32chars) into geometric coordinates"},
 	{NULL, NULL, 0, NULL}
 };
 
