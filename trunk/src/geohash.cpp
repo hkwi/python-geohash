@@ -612,32 +612,32 @@ static PyObject *py_geoint_encode(PyObject *self, PyObject *args){
 	PyObject *ret = NULL;
 #if UINT64_MAX <= ULLONG_MAX
 	ret = PyTuple_New(2);
-	PY_LONG_LONG li;
-	li = ((PY_LONG_LONG)interleaved[0]<<48) + ((PY_LONG_LONG)interleaved[1]<<32) + ((PY_LONG_LONG)interleaved[2]<<16) + (PY_LONG_LONG)interleaved[3];
+	unsigned PY_LONG_LONG li;
+	li = ((unsigned PY_LONG_LONG)interleaved[0]<<48) + ((unsigned PY_LONG_LONG)interleaved[1]<<32) + ((unsigned PY_LONG_LONG)interleaved[2]<<16) + (unsigned PY_LONG_LONG)interleaved[3];
 	PyTuple_SET_ITEM(ret, 0, PyLong_FromUnsignedLongLong(li));
-	li = ((PY_LONG_LONG)interleaved[4]<<48) + ((PY_LONG_LONG)interleaved[5]<<32) + ((PY_LONG_LONG)interleaved[6]<<16) + (PY_LONG_LONG)interleaved[7];
+	li = ((unsigned PY_LONG_LONG)interleaved[4]<<48) + ((unsigned PY_LONG_LONG)interleaved[5]<<32) + ((unsigned PY_LONG_LONG)interleaved[6]<<16) + (unsigned PY_LONG_LONG)interleaved[7];
 	PyTuple_SET_ITEM(ret, 1, PyLong_FromUnsignedLongLong(li));
 #elif UINT32_MAX <= ULLONG_MAX
 	ret = PyTuple_New(4);
-	PY_LONG_LONG li;
-	li = ((PY_LONG_LONG)interleaved[0]<<16) + (PY_LONG_LONG)interleaved[1];
+	unsigned PY_LONG_LONG li;
+	li = ((unsigned PY_LONG_LONG)interleaved[0]<<16) + (unsigned PY_LONG_LONG)interleaved[1];
 	PyTuple_SET_ITEM(ret, 0, PyLong_FromUnsignedLongLong(li));
-	li = ((PY_LONG_LONG)interleaved[1]<<16) + (PY_LONG_LONG)interleaved[3];
+	li = ((unsigned PY_LONG_LONG)interleaved[1]<<16) + (unsigned PY_LONG_LONG)interleaved[3];
 	PyTuple_SET_ITEM(ret, 1, PyLong_FromUnsignedLongLong(li));
-	li = ((PY_LONG_LONG)interleaved[2]<<16) + (PY_LONG_LONG)interleaved[5];
+	li = ((unsigned PY_LONG_LONG)interleaved[2]<<16) + (unsigned PY_LONG_LONG)interleaved[5];
 	PyTuple_SET_ITEM(ret, 2, PyLong_FromUnsignedLongLong(li));
-	li = ((PY_LONG_LONG)interleaved[3]<<16) + (PY_LONG_LONG)interleaved[7];
+	li = ((unsigned PY_LONG_LONG)interleaved[3]<<16) + (unsigned PY_LONG_LONG)interleaved[7];
 	PyTuple_SET_ITEM(ret, 3, PyLong_FromUnsignedLongLong(li));
 #elif UINT16_MAX <= ULLONG_MAX
 	ret = PyTuple_New(8);
-	PyTuple_SET_ITEM(ret, 0, PyLong_FromUnsignedLongLong((PY_LONG_LONG)interleaved[0]));
-	PyTuple_SET_ITEM(ret, 1, PyLong_FromUnsignedLongLong((PY_LONG_LONG)interleaved[1]));
-	PyTuple_SET_ITEM(ret, 2, PyLong_FromUnsignedLongLong((PY_LONG_LONG)interleaved[2]));
-	PyTuple_SET_ITEM(ret, 3, PyLong_FromUnsignedLongLong((PY_LONG_LONG)interleaved[3]));
-	PyTuple_SET_ITEM(ret, 4, PyLong_FromUnsignedLongLong((PY_LONG_LONG)interleaved[4]));
-	PyTuple_SET_ITEM(ret, 5, PyLong_FromUnsignedLongLong((PY_LONG_LONG)interleaved[5]));
-	PyTuple_SET_ITEM(ret, 6, PyLong_FromUnsignedLongLong((PY_LONG_LONG)interleaved[6]));
-	PyTuple_SET_ITEM(ret, 7, PyLong_FromUnsignedLongLong((PY_LONG_LONG)interleaved[7]));
+	PyTuple_SET_ITEM(ret, 0, PyLong_FromUnsignedLongLong((unsigned PY_LONG_LONG)interleaved[0]));
+	PyTuple_SET_ITEM(ret, 1, PyLong_FromUnsignedLongLong((unsigned PY_LONG_LONG)interleaved[1]));
+	PyTuple_SET_ITEM(ret, 2, PyLong_FromUnsignedLongLong((unsigned PY_LONG_LONG)interleaved[2]));
+	PyTuple_SET_ITEM(ret, 3, PyLong_FromUnsignedLongLong((unsigned PY_LONG_LONG)interleaved[3]));
+	PyTuple_SET_ITEM(ret, 4, PyLong_FromUnsignedLongLong((unsigned PY_LONG_LONG)interleaved[4]));
+	PyTuple_SET_ITEM(ret, 5, PyLong_FromUnsignedLongLong((unsigned PY_LONG_LONG)interleaved[5]));
+	PyTuple_SET_ITEM(ret, 6, PyLong_FromUnsignedLongLong((unsigned PY_LONG_LONG)interleaved[6]));
+	PyTuple_SET_ITEM(ret, 7, PyLong_FromUnsignedLongLong((unsigned PY_LONG_LONG)interleaved[7]));
 #else
 #error "This platform not supported"
 #endif // UINT64_MAX <= ULLONG_MAX
@@ -652,7 +652,7 @@ static PyObject *py_geoint_decode(PyObject *self, PyObject *args){
 	int sz = PyTuple_GET_SIZE(args);
 #endif
 	if(sz==2){
-		PY_LONG_LONG lo;
+		unsigned PY_LONG_LONG lo;
 		lo = PyLong_AsUnsignedLongLong(PyTuple_GET_ITEM(args,0));
 		interleaved[0] = (uint16_t)(lo>>48);
 		interleaved[1] = (uint16_t)(lo>>32);
@@ -664,7 +664,7 @@ static PyObject *py_geoint_decode(PyObject *self, PyObject *args){
 		interleaved[6] = (uint16_t)(lo>>16);
 		interleaved[7] = (uint16_t)lo;
 	}else if(sz==4){
-		PY_LONG_LONG lo;
+		unsigned PY_LONG_LONG lo;
 		lo = PyLong_AsUnsignedLongLong(PyTuple_GET_ITEM(args,0));
 		interleaved[0] = (uint16_t)(lo>>16);
 		interleaved[1] = (uint16_t)lo;
@@ -717,7 +717,17 @@ static PyMethodDef GeohashMethods[] = {
 
 #ifdef Py_InitModule
 PyMODINIT_FUNC init_geohash(void){
-	(void)Py_InitModule("_geohash", GeohashMethods);
+	PyObject *mod = Py_InitModule("_geohash", GeohashMethods);
+#if UINT64_MAX <= ULLONG_MAX
+	PyModule_AddIntConstant(mod, "intunit", 64);
+#elif UINT32_MAX <= ULLONG_MAX
+	PyModule_AddIntConstant(mod, "intunit", 32);
+#elif UINT16_MAX <= ULLONG_MAX
+	PyModule_AddIntConstant(mod, "intunit", 16);
+#else
+#error "This platform not supported"
+#endif // UINT64_MAX <= ULLONG_MAX
+	return (void)mod;
 }
 #else
 PyDoc_STRVAR(module_doc, "geohash speedups");
@@ -734,7 +744,17 @@ static struct PyModuleDef geohash_moduledef = {
 	NULL
 };
 PyMODINIT_FUNC PyInit__geohash(void){
-	return PyModule_Create(&geohash_moduledef);
+	PyObject *mod = PyModule_Create(&geohash_moduledef);
+#if UINT64_MAX <= ULLONG_MAX
+	PyModule_AddIntConstant(mod, "intunit", 64);
+#elif UINT32_MAX <= ULLONG_MAX
+	PyModule_AddIntConstant(mod, "intunit", 32);
+#elif UINT16_MAX <= ULLONG_MAX
+	PyModule_AddIntConstant(mod, "intunit", 16);
+#else
+#error "This platform not supported"
+#endif // UINT64_MAX <= ULLONG_MAX
+	return (void)mod;
 };
 #endif /* Py_InitModule */
 
