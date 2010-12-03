@@ -34,7 +34,7 @@ def _decode_c2i(gridcode):
 	basebits = 0
 	if len(gridcode)>6:
 		for i in gridcode[6:]:
-			lat = (lat<<1) + int(i)/2
+			lat = (lat<<1) + int(int(i)/2)
 			lon = (lon<<1) + int(i)%2
 			base = base<<1
 			basebits += 1

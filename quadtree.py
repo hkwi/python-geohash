@@ -23,7 +23,7 @@ def _decode_c2i(treecode):
 	lon = 0
 	for i in treecode:
 		b = ord(i)-48
-		lat = (lat<<1)+b/2
+		lat = (lat<<1)+int(b/2)
 		lon = (lon<<1)+b%2
 	
 	return (lat,lon,len(treecode))
@@ -33,7 +33,7 @@ def encode(lat,lon,precision=12):
 		ints = _geohash.encode_int(lat, lon)
 		ret = ""
 		for intu in ints:
-			for i in range(_geohash.intunit/2):
+			for i in range(int(_geohash.intunit/2)):
 				if len(ret) > precision:
 					break
 				ret += "0213"[(intu>>(_geohash.intunit-2-i*2))&0x03]
@@ -45,10 +45,10 @@ def encode(lat,lon,precision=12):
 
 def decode(treecode, delta=False):
 	if _geohash and len(treecode)<64:
-		unit = _geohash.intunit/2
+		unit = int(_geohash.intunit/2)
 		treecode += "3" # generate center coordinate
 		args = []
-		for i in range(len(treecode)/unit):
+		for i in range(int(len(treecode)/unit)):
 			t = 0
 			for j in range(unit):
 				t = (t<<2) + {"0":0,"1":2,"2":1,"3":3}[treecode[i*unit+j]]
@@ -57,7 +57,7 @@ def decode(treecode, delta=False):
 		
 		if len(treecode)%unit:
 			t = 0
-			off = len(treecode)/unit*unit
+			off = int(len(treecode)/unit)*unit
 			for i in range(len(treecode)%unit):
 				t = (t<<2) + {"0":0,"1":2,"2":1,"3":3}[treecode[off+i]]
 			
@@ -66,7 +66,7 @@ def decode(treecode, delta=False):
 			
 			args.append(t)
 		
-		args.extend([0,]*(128/_geohash.intunit-len(args)))
+		args.extend([0,]*int(128/_geohash.intunit-len(args)))
 		(lat, lon) = _geohash.decode_int(*tuple(args))
 		if delta:
 			b = 1<<(len(treecode)+1)
