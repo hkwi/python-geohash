@@ -44,7 +44,7 @@ def encode(lat,lon,precision=12):
 	return _encode_i2c(int(b*(lat+90.0)/180.0), int(b*(lon+180.0)/360.0), precision)
 
 def decode(treecode, delta=False):
-	if _geohash and len(treecode)<=64:
+	if _geohash and len(treecode)<64:
 		unit = _geohash.intunit/2
 		treecode += "3" # generate center coordinate
 		args = []
