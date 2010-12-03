@@ -260,16 +260,16 @@ static int geohashstr_to_interleaved(char* r, size_t length, uint16_t *interleav
 		 0x15, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B, 0x1C,
 		 0x1D, 0x1E, 0x1F,  '|',  '|',  '|',  '|',  '|',
 	};
-	if(length == (size_t)-1){
-		length = strlen(r);
+	for(unsigned int i=0; i<length; i++){
+		if(r[i]==0){
+			length = i;
+			break;
+		}else if(r[i]<0 || map[(unsigned char)r[i]]=='|'){
+			return GEOHASH_INVALIDCODE;
+		}
 	}
 	if(dst_count*16 < length*5){
 		return GEOHASH_INTERNALERROR;
-	}
-	for(unsigned int i=0; i<length; i++){
-		if(r[i]<0 || map[(unsigned char)r[i]]=='|'){
-			return GEOHASH_INVALIDCODE;
-		}
 	}
 	for(unsigned int j=0; j<dst_count; j++){
 		interleaved[j]=0;
