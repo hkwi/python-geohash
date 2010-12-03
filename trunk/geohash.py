@@ -29,7 +29,7 @@ del i
 # 	return ''.join(t)
 
 def _encode_i2c(lat,lon,lat_length,lon_length):
-	precision=(lat_length+lon_length)/5
+	precision = int((lat_length+lon_length)/5)
 	if lat_length < lon_length:
 		a = lon
 		b = lat
@@ -65,7 +65,7 @@ def encode(latitude, longitude, precision=12):
 	lon = longitude/360.0
 	
 	xprecision=precision+1
-	lat_length=lon_length=xprecision*5/2
+	lat_length = lon_length = int(xprecision*5/2)
 	if xprecision%2==1:
 		lon_length+=1
 	
@@ -184,7 +184,9 @@ def neighbors(hashcode):
 	ret = []
 	tlat = lat
 	for tlon in (lon-1, lon+1):
-		ret.append(_encode_i2c(tlat,tlon,lat_length,lon_length))
+		code = _encode_i2c(tlat,tlon,lat_length,lon_length)
+		if code:
+			ret.append(code)
 	
 	tlat = lat+1
 	if not tlat >> lat_length:
