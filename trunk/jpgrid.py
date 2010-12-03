@@ -13,9 +13,9 @@ def _encode_i2c(lat, lon, base1):
 	if base1==80:
 		t.append(lon%10)
 		t.append(lat%10)
-		lat = lat/10
-		lon = lon/10
-		base1 = base1/10
+		lat = int(lat/10)
+		lon = int(lon/10)
+		base1 = int(base1/10)
 	elif base1==16: # Uni5
 		t.append(1 + (lat&1)*2 + (lon&1))
 		lat = lat>>1
@@ -25,9 +25,9 @@ def _encode_i2c(lat, lon, base1):
 		t.append(5)
 		t.append(lon%5*2)
 		t.append(lat%5*2)
-		lat = lat/5
-		lon = lon/5
-		base1 = base1/5
+		lat = int(lat/5)
+		lon = int(lon/5)
+		base1 = int(base1/5)
 	
 	if base1==8:
 		t.append(lon%8)
@@ -61,7 +61,7 @@ def _decode_c2i(gridcode):
 	if codelen>6:
 		if codelen==7:
 			i = int(gridcode[6:7])-1
-			lat = (lat<<1) + i/2
+			lat = (lat<<1) + int(i/2)
 			lon = (lon<<1) + i%2
 			base1 = base1<<1
 		else:
@@ -77,7 +77,7 @@ def _decode_c2i(gridcode):
 		else:
 			for i in gridcode[8:]:
 				i = int(i)-1
-				lat = (lat<<1) + i/2
+				lat = (lat<<1) + int(i/2)
 				lon = (lon<<1) + i%2
 				base1 = base1<<1
 	
