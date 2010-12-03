@@ -315,9 +315,19 @@ static int geohashstr_to_interleaved(char* r, size_t length, uint16_t *interleav
    (latitude, longitude) will be that of south west point.
 */
 static int geohash_decode_impl(char* r, size_t length, double *latitude, double *longitude){
+	uint16_t intr_auto[8];
+	uint16_t *interleaved = intr_auto;
 	size_t intr_length = length*5/16+1;
-	intr_length = intr_length < 8 ? 8 : intr_length;
-	uint16_t interleaved[intr_length];
+	int intr_free = 0;
+	if(intr_length > 8){
+		interleaved = (uint16_t*)malloc(sizeof(uint16_t)*intr_length);
+		if(!interleaved){
+			return GEOHASH_NOMEMORY;
+		}
+		intr_free = 1;
+	}else{
+		intr_length = 8;
+	}
 	int ret = GEOHASH_OK;
 	if((ret=geohashstr_to_interleaved(r, length, interleaved, intr_length)) != GEOHASH_OK){
 		return ret;
@@ -329,6 +339,9 @@ static int geohash_decode_impl(char* r, size_t length, double *latitude, double 
 		deinterleave(interleaved[i], &upper, &lower);
 		lon64 = (lon64<<8)+upper;
 		lat64 = (lat64<<8)+lower;
+	}
+	if(intr_free){
+		free(interleaved);
 	}
 	
 	double t;
@@ -754,7 +767,7 @@ PyMODINIT_FUNC PyInit__geohash(void){
 #else
 #error "This platform not supported"
 #endif // UINT64_MAX <= ULLONG_MAX
-	return (void)mod;
+	return mod;
 };
 #endif /* Py_InitModule */
 
