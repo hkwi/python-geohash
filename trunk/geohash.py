@@ -15,19 +15,6 @@ for i in range(len(_base32)):
 	_base32_map[_base32[i]] = i
 del i
 
-# def _binstr(b, length=32):
-# 	t = []
-# 	while length>0:
-# 		if b&1:
-# 			t.append('1')
-# 		else:
-# 			t.append('0')
-# 		b=b>>1
-# 		length-=1
-# 	
-# 	t.reverse()
-# 	return ''.join(t)
-
 def _encode_i2c(lat,lon,lat_length,lon_length):
 	precision = int((lat_length+lon_length)/5)
 	if lat_length < lon_length:
@@ -204,3 +191,203 @@ def expand(hashcode):
 	ret = neighbors(hashcode)
 	ret.append(hashcode)
 	return ret
+
+def _uint64_interleave(lat32, lon32):
+	intr = 0
+	boost = (0,1,4,5,16,17,20,21,64,65,68,69,80,81,84,85)
+	for i in range(8):
+		intr = (intr<<8) + (boost[(lon32>>(28-i*4))%16]<<1) + boost[(lat32>>(28-i*4))%16]
+	
+	return intr
+
+def _uint64_deinterleave(ui64):
+	lat = lon = 0
+	boost = ((0,0),(0,1),(1,0),(1,1),(0,2),(0,3),(1,2),(1,3),
+			 (2,0),(2,1),(3,0),(3,1),(2,2),(2,3),(3,2),(3,3))
+	for i in range(16):
+		p = boost[(ui64>>(60-i*4))%16]
+		lon = (lon<<2) + p[0]
+		lat = (lat<<2) + p[1]
+	
+	return (lat, lon)
+
+def encode_uint64(latitude, longitude):
+	if latitude >= 90.0 or latitude < -90.0:
+		raise ValueError("Latitude must be in the range of (-90.0, 90.0)")
+	while longitude < -180.0:
+		longitude += 360.0
+	while longitude >= 180.0:
+		longitude -= 360.0
+	
+	if _geohash:
+		ui128 = _geohash.encode_int(latitude,longitude)
+		if _geohash.intunit == 64:
+			return ui128[0]
+		elif _geohash.intunit == 32:
+			return (ui128[0]<<32) + ui128[1]
+		elif _geohash.intunit == 16:
+			return (ui128[0]<<48) + (ui128[1]<<32) + (ui128[2]<<16) + ui128[3]
+	
+	lat = int(((latitude + 90.0)/180.0)*(1<<32))
+	lon = int(((longitude+180.0)/360.0)*(1<<32))
+	return _uint64_interleave(lat, lon)
+
+def decode_uint64(ui64):
+	if _geohash:
+		latlon = _geohash.decode_int(ui64 % 0xFFFFFFFFFFFFFFFF)
+		if latlon:
+			return latlon
+	
+	lat,lon = _uint64_deinterleave(ui64)
+	return (180.0*lat/(1<<32) - 90.0, 360.0*lon/(1<<32) - 180.0)
+
+def expand_uint64(ui64, precision=50):
+	ui64 = ui64 & (0xFFFFFFFFFFFFFFFF << (64-precision))
+	lat,lon = _uint64_deinterleave(ui64)
+	lat_grid = 1<<(32-int(precision/2))
+	lon_grid = lat_grid>>(precision%2)
+	
+	if precision<=2: # expand becomes to the whole range
+		return []
+	
+	ranges = []
+	if lat & lat_grid:
+		if lon & lon_grid:
+			ui64 = _uint64_interleave(lat-lat_grid, lon-lon_grid)
+			ranges.append((ui64, ui64 + (1<<(64-precision+2))))
+			if precision%2==0:
+				# lat,lon = (1, 1) and even precision
+				ui64 = _uint64_interleave(lat-lat_grid, lon+lon_grid)
+				ranges.append((ui64, ui64 + (1<<(64-precision+1))))
+				
+				if lat + lat_grid < 0xFFFFFFFF:
+					ui64 = _uint64_interleave(lat+lat_grid, lon-lon_grid)
+					ranges.append((ui64, ui64 + (1<<(64-precision))))
+					ui64 = _uint64_interleave(lat+lat_grid, lon)
+					ranges.append((ui64, ui64 + (1<<(64-precision))))
+					ui64 = _uint64_interleave(lat+lat_grid, lon+lon_grid)
+					ranges.append((ui64, ui64 + (1<<(64-precision))))
+			else:
+				# lat,lon = (1, 1) and odd precision
+				if lat + lat_grid < 0xFFFFFFFF:
+					ui64 = _uint64_interleave(lat+lat_grid, lon-lon_grid)
+					ranges.append((ui64, ui64 + (1<<(64-precision+1))))
+					
+					ui64 = _uint64_interleave(lat+lat_grid, lon+lon_grid)
+					ranges.append((ui64, ui64 + (1<<(64-precision))))
+				
+				ui64 = _uint64_interleave(lat, lon+lon_grid)
+				ranges.append((ui64, ui64 + (1<<(64-precision))))
+				ui64 = _uint64_interleave(lat-lat_grid, lon+lon_grid)
+				ranges.append((ui64, ui64 + (1<<(64-precision))))
+		else:
+			ui64 = _uint64_interleave(lat-lat_grid, lon)
+			ranges.append((ui64, ui64 + (1<<(64-precision+2))))
+			if precision%2==0:
+				# lat,lon = (1, 0) and odd precision
+				ui64 = _uint64_interleave(lat-lat_grid, lon-lon_grid)
+				ranges.append((ui64, ui64 + (1<<(64-precision+1))))
+				
+				if lat + lat_grid < 0xFFFFFFFF:
+					ui64 = _uint64_interleave(lat+lat_grid, lon-lon_grid)
+					ranges.append((ui64, ui64 + (1<<(64-precision))))
+					ui64 = _uint64_interleave(lat+lat_grid, lon)
+					ranges.append((ui64, ui64 + (1<<(64-precision))))
+					ui64 = _uint64_interleave(lat+lat_grid, lon+lon_grid)
+					ranges.append((ui64, ui64 + (1<<(64-precision))))
+			else:
+				# lat,lon = (1, 0) and odd precision
+				if lat + lat_grid < 0xFFFFFFFF:
+					ui64 = _uint64_interleave(lat+lat_grid, lon)
+					ranges.append((ui64, ui64 + (1<<(64-precision+1))))
+					
+					ui64 = _uint64_interleave(lat+lat_grid, lon-lon_grid)
+					ranges.append((ui64, ui64 + (1<<(64-precision))))
+				ui64 = _uint64_interleave(lat, lon-lon_grid)
+				ranges.append((ui64, ui64 + (1<<(64-precision))))
+				ui64 = _uint64_interleave(lat-lat_grid, lon-lon_grid)
+				ranges.append((ui64, ui64 + (1<<(64-precision))))
+	else:
+		if lon & lon_grid:
+			ui64 = _uint64_interleave(lat, lon-lon_grid)
+			ranges.append((ui64, ui64 + (1<<(64-precision+2))))
+			if precision%2==0:
+				# lat,lon = (0, 1) and even precision
+				ui64 = _uint64_interleave(lat, lon+lon_grid)
+				ranges.append((ui64, ui64 + (1<<(64-precision+1))))
+				
+				if lat > 0:
+					ui64 = _uint64_interleave(lat-lat_grid, lon-lon_grid)
+					ranges.append((ui64, ui64 + (1<<(64-precision))))
+					ui64 = _uint64_interleave(lat-lat_grid, lon)
+					ranges.append((ui64, ui64 + (1<<(64-precision))))
+					ui64 = _uint64_interleave(lat-lat_grid, lon+lon_grid)
+					ranges.append((ui64, ui64 + (1<<(64-precision))))
+			else:
+				# lat,lon = (0, 1) and odd precision
+				if lat > 0:
+					ui64 = _uint64_interleave(lat-lat_grid, lon-lon_grid)
+					ranges.append((ui64, ui64 + (1<<(64-precision+1))))
+					
+					ui64 = _uint64_interleave(lat-lat_grid, lon+lon_grid)
+					ranges.append((ui64, ui64 + (1<<(64-precision))))
+				ui64 = _uint64_interleave(lat, lon+lon_grid)
+				ranges.append((ui64, ui64 + (1<<(64-precision))))
+				ui64 = _uint64_interleave(lat+lat_grid, lon+lon_grid)
+				ranges.append((ui64, ui64 + (1<<(64-precision))))
+		else:
+			ui64 = _uint64_interleave(lat, lon)
+			ranges.append((ui64, ui64 + (1<<(64-precision+2))))
+			if precision%2==0:
+				# lat,lon = (0, 0) and even precision
+				ui64 = _uint64_interleave(lat, lon-lon_grid)
+				ranges.append((ui64, ui64 + (1<<(64-precision+1))))
+				
+				if lat > 0:
+					ui64 = _uint64_interleave(lat-lat_grid, lon-lon_grid)
+					ranges.append((ui64, ui64 + (1<<(64-precision))))
+					ui64 = _uint64_interleave(lat-lat_grid, lon)
+					ranges.append((ui64, ui64 + (1<<(64-precision))))
+					ui64 = _uint64_interleave(lat-lat_grid, lon+lon_grid)
+					ranges.append((ui64, ui64 + (1<<(64-precision))))
+			else:
+				# lat,lon = (0, 0) and odd precision
+				if lat > 0:
+					ui64 = _uint64_interleave(lat-lat_grid, lon)
+					ranges.append((ui64, ui64 + (1<<(64-precision+1))))
+					
+					ui64 = _uint64_interleave(lat-lat_grid, lon-lon_grid)
+					ranges.append((ui64, ui64 + (1<<(64-precision))))
+				ui64 = _uint64_interleave(lat, lon-lon_grid)
+				ranges.append((ui64, ui64 + (1<<(64-precision))))
+				ui64 = _uint64_interleave(lat+lat_grid, lon-lon_grid)
+				ranges.append((ui64, ui64 + (1<<(64-precision))))
+	
+	ranges.sort()
+	
+	# merge the conditions
+	shrink = []
+	prev = None
+	for i in ranges:
+		if prev:
+			if prev[1] != i[0]:
+				shrink.append(prev)
+				prev = i
+			else:
+				prev = (prev[0], i[1])
+		else:
+			prev = i
+	
+	shrink.append(prev)
+	
+	ranges = []
+	for i in shrink:
+		a,b=i
+		if a == 0:
+			a = None # we can remove the condition because it is the lowest value
+		if b == 0x10000000000000000:
+			b = None # we can remove the condition because it is the highest value
+		
+		ranges.append((a,b))
+	
+	return ranges
