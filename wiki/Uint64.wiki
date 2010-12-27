@@ -1,4 +1,5 @@
 #summary uint64, another representation of geo coordinates.
+#labels Featured
 
 = Introduction =
 For most of our use case, 64bit representation is sufficient and it can be calculated *very fast* in most computers. So please do consider using 64bit integer representation instead of geohash. geohash and 64bit representations can be converted from each other.
@@ -6,14 +7,12 @@ For most of our use case, 64bit representation is sufficient and it can be calcu
 = Details =
 With geohash, we usually need a string which length is 8 or 9, 10 chars. That means we need at most 50bits. 32bit is not sufficient but 64bit is OK. So the two can be converted each other, while you use a geohash of less than 13 chars.
 
-Geohash is a good representation because it makes easy to query a small area with a single data key. However, it use a string prefix match. And string prefix match could be calculated in integer range comparison with good control over the precision.
-
 {{{
 >>> import goehash
->>> geohash.encode_uint64(0.0, 0.0)
-13835058055282163712
 >>> hex(geohash.encode_uint64(0.0, 0.0))
 '0xc000000000000000'
->>> geohash.encode_uint64(35.0, 135.0)
-17078019313112192257
+>>> geohash.encode(0.0, 0.0)
+'s00000000000'
 }}}
+
+Geohash is a good representation because it makes easy to query a small area with a single data key. However, it use a string prefix match. And string prefix match could be calculated in integer range comparison with good control over the precision.
