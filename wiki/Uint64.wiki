@@ -1,0 +1,9 @@
+#summary uint64 of another representation of geo coordinates.
+
+= Introduction =
+For most of our use case, 64bit representation is sufficient and it can be calculated *very fast* in most computers. So please do consider using 64bit integer representation instead of geohash. geohash and 64bit representations can be converted from each other.
+
+= Details =
+With geohash, we usually need a string which length is 8 or 9, 10 chars. That means we need at most 50bits. 32bit is not sufficient but 64bit is OK. So the two can be converted each other, while you use a geohash of less than 13 chars.
+
+Geohash is a good representation because it makes easy to query a small area with a single data key. However, it use a string prefix match. And string prefix match could be calculated in integer range comparison with good control over the precision.
