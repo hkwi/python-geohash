@@ -1,6 +1,7 @@
 import random
 import geohash
 import time
+import sys
 
 os = []
 for i in range(100000):
@@ -11,4 +12,4 @@ tmstart = time.time()
 for i in range(100000):
 	geohash.encode(*os[i])
 
-print time.time()-tmstart
+sys.stdout.write("%f sec" % (time.time()-tmstart,))
