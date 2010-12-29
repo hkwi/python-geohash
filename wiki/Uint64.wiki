@@ -19,8 +19,8 @@ Geohash is a good representation because it makes easy to query a small area wit
 
 {{{
 >>> import geohash
->>> precision
->>> lo = geohash.encode_uint64(0.0, 0.0) & (0xFFFFFFFFFFFFFFFF<<precision)
->>> hi = lo + (1<<precision)
+>>> shift = 64-precision
+>>> lo = geohash.encode_uint64(0.0, 0.0) & (0xFFFFFFFFFFFFFFFF<<shift)
+>>> hi = lo + (1<<shift)
 >>> db.execute("SELECT * FROM samples WHERE geoint>=? AND geoint<?", (lo, hi+(1<<precision))
 }}}
