@@ -40,3 +40,10 @@ Exact coordinate for Geohash ezs42:
 }}}
 
  http://python-geohash.googlecode.com/svn/wiki/neighbors.png
+
+== Uint64 routines ==
+geohash module also provide a set of uint64 (64 bit unsigned integer) representation routines.
+ * geohash.*encode_uint64*(_latitude, longitude_)
+ * geohash.*decode_uint64*(_ui64_)
+ * geohash.*expand_uint64*(_ui64`[`, precision`]`_)
+ 
