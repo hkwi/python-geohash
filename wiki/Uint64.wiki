@@ -40,16 +40,19 @@ With uint64, you can get the ranges by expand_uint64.
 >>> conds = []
 >>> param = []
 >>> for hilo from geohash.expand_uint64(ui, 45):
->>>     if hilo[0]:
->>>         conds.append("geoint>=?")
->>>         param.append(hilo[0])
->>>     
->>>     if hilo[1]:
->>>         conds.append("geoint<?")
->>>         param.append(hilo[1])
+>>>   if hilo[0] and hilo[1]:
+>>>     conds.append("(geoint>=? AND geoint<?)")
+>>>     param.append(hilo[0])
+>>>     param.append(hilo[1])
+>>>   elif hilo[0]:
+>>>     conds.append("geoint>=?")
+>>>     param.append(hilo[0])
+>>>   elif hilo[1]:
+>>>     conds.append("geoint<?")
+>>>     param.append(hilo[1])
 >>> 
 >>> if conds:
->>>     db.execute("SELECT * FROM samples WHERE " + " AND ".join(conds), param)
+>>>     db.execute("SELECT * FROM samples WHERE " + " OR ".join(conds), param)
 >>> else:
 >>>     db.execute("SELECT * FROM samples")
 }}}
