@@ -1,7 +1,7 @@
-#summary geohash usage examples
+#summary geohash reference
 #labels Phase-Implementation,Featured,example
 
-Encoding.
+== geohash.encode(_latitude, longitude`[`, precision`]`_) ==
 {{{
 >>> import geohash
 >>> print 'Geohash for 42.6, -5.6:', geohash.encode(42.6, -5.6)
@@ -10,7 +10,7 @@ Geohash for 42.6, -5.6: ezs42e44yx96
 Geohash for 42.6, -5.6: ezs42
 }}}
 
-Decoding.
+== geohash.decode(_hashcode_`[`, delta`]`) ==
 {{{
 >>> print 'Coordinate for Geohash ezs42:', geohash.decode('ezs42')
 Coordinate for Geohash ezs42: (42.60498046875, -5.60302734375)
@@ -19,12 +19,14 @@ Exact coordinate for Geohash ezs42:
 (42.60498046875, -5.60302734375, 0.02197265625, 0.02197265625)
 }}}
 
+== geohash.*bbox*(_hashcode_) ==
 You can get bounding box like this:
 {{{
 >>> geohash.bbox('ezs42')
 {'s': 42.5830078125, 'e': -5.5810546875, 'w': -5.625, 'n': 42.626953125}
 }}}
 
+== geohash.*neighbors*(_hashcode_) ==
 When you want to get neighbor codes of a specific code, use neighbors(). expand() includes the center code together with neighbors().
 {{{
 >>> geohash.neighbors('ezs42')
