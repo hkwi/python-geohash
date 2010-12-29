@@ -1,6 +1,8 @@
 #summary geohash reference
 #labels Phase-Implementation,Featured,example
 = geohash module =
+
+== Basic geohash routines ==
 geohash module provides geohash routines.
  * geohash.*encode*(_latitude, longitude`[`, precision`]`_)
  Create a geohash string from two floating numbers of latitude and longitude. Precision defaults to 12, which is usually sufficient for most cases.
