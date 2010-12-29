@@ -1,7 +1,9 @@
 #summary geohash reference
 #labels Phase-Implementation,Featured,example
-
+= geohash module =
+geohash module provides geohash routines.
  * geohash.*encode*(_latitude, longitude`[`, precision`]`_)
+ Create a geohash string from two floating numbers of latitude and longitude. Precision defaults to 12, which is usually sufficient for most cases.
 {{{
 >>> import geohash
 >>> print 'Geohash for 42.6, -5.6:', geohash.encode(42.6, -5.6)
@@ -20,14 +22,14 @@ Exact coordinate for Geohash ezs42:
 }}}
 
  * geohash.*bbox*(_hashcode_)
-You can get bounding box like this:
+ You can get bounding box like this:
 {{{
 >>> geohash.bbox('ezs42')
 {'s': 42.5830078125, 'e': -5.5810546875, 'w': -5.625, 'n': 42.626953125}
 }}}
 
  * geohash.*neighbors*(_hashcode_)
-When you want to get neighbor codes of a specific code, use neighbors(). expand() includes the center code together with neighbors().
+ When you want to get neighbor codes of a specific code, use neighbors(). expand() includes the center code together with neighbors().
 {{{
 >>> geohash.neighbors('ezs42')
 ['ezefr', 'ezs43', 'ezefx', 'ezs48', 'ezs49', 'ezefp', 'ezs40', 'ezs41']
@@ -35,4 +37,4 @@ When you want to get neighbor codes of a specific code, use neighbors(). expand(
 ['ezefr', 'ezs43', 'ezefx', 'ezs48', 'ezs49', 'ezefp', 'ezs40', 'ezs41', 'ezs42']
 }}}
 
-http://python-geohash.googlecode.com/svn/wiki/neighbors.png
+ http://python-geohash.googlecode.com/svn/wiki/neighbors.png
