@@ -8,7 +8,7 @@ For most of our use case, 64bit representation is sufficient and it can be calcu
 With geohash, we usually need a string which length is 8 or 9, 10 chars. That means we need at most 50bits. 32bit is not sufficient but 64bit is OK. So the two can be converted each other, while you use a geohash of less than 13 chars.
 
 {{{
->>> import goehash
+>>> import geohash
 >>> hex(geohash.encode_uint64(0.0, 0.0))
 '0xc000000000000000'
 >>> geohash.encode(0.0, 0.0)
@@ -16,3 +16,12 @@ With geohash, we usually need a string which length is 8 or 9, 10 chars. That me
 }}}
 
 Geohash is a good representation because it makes easy to query a small area with a single data key. However, it use a string prefix match. And string prefix match could be calculated in integer range comparison with good control over the precision.
+
+{{{
+>>> import geohash
+>>> precision
+>>> lo = geohash.encode_uint64(0.0, 0.0) & (0xFFFFFFFFFFFFFFFF<<precision)
+>>> hi = lo + (1<<precision)
+>>> db.execute("SELECT * FROM samples WHERE geoint>=? AND geoint<?",
+        (lo, hi+(1<<precision))
+}}}
