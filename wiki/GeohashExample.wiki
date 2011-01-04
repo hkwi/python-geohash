@@ -54,7 +54,8 @@ geohash module also provide a set of uint64 (64 bit unsigned integer) representa
 
  * geohash.*expand_uint64*(_ui64`[`, precision`]`_)
  This function returns integer ranges that cover the expanded area of specified ui64, unsigned 64 bit integer. The ranges are list of two element tuples, which means lower boundary and higher boundary. If the element has None, then you don't have to check that boundary.
- precision is the number of bits. Value must be in 0 to 64, because there we have 64 bits.
+ 
+ `precision` is the number of bits, defaults to 50. 50 bits is equivalent to 10 chars in geohash. Value must be in 0 to 64, because there we have 64 bits.
 
 === Uint64 examples ===
 With geohash, we usually need a string which length is 8 or 9, 10 chars. That means we need at most 50bits. 32bit is not sufficient but 64bit is OK. So the two can be converted each other, while you use a geohash of less than 13 chars.
