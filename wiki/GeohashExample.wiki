@@ -47,8 +47,13 @@ For most of our use case, 64bit representation is sufficient and it can be calcu
 geohash module also provide a set of uint64 (64 bit unsigned integer) representation routines.
 
  * geohash.*encode_uint64*(_latitude, longitude_)
+ This function encodes geometric coordinates of two doubles into one unsinged 64 bit integer.
+
  * geohash.*decode_uint64*(_ui64_)
+ This function decode one 64 bit unsigned integer into two doubles.
+
  * geohash.*expand_uint64*(_ui64`[`, precision`]`_)
+ This function returns integer ranges that cover the expanded area of specified ui64, unsigned 64 bit integer. The ranges are list of two element tuples, which means lower boundary and higher boundary. If the element has None, then you don't have to check that boundary.
 
 === Uint64 examples ===
 With geohash, we usually need a string which length is 8 or 9, 10 chars. That means we need at most 50bits. 32bit is not sufficient but 64bit is OK. So the two can be converted each other, while you use a geohash of less than 13 chars.
