@@ -99,7 +99,7 @@ Geohash is a good representation because it makes easy to query a small area wit
 {{{
 >>> import sqlite3
 >>> import geohash
->>> #### below is uint64 sample ####
+>>> #### below is uint64 example ####
 >>> precision = 50
 >>> shift = 64-precision
 >>> lo = geohash.encode_uint64(0.0, 0.0) & (0xFFFFFFFFFFFFFFFF<<shift)
@@ -107,7 +107,7 @@ Geohash is a good representation because it makes easy to query a small area wit
 >>> cur = sqlite3.connect("samples.db").cursor()
 >>> cur.execute("SELECT * FROM samples WHERE geoint>=? AND geoint<?", (lo-(1<<63), hi-(1<<63)))
 >>> cur.fetchall()
->>> #### below is basic geohash sample ####
+>>> #### below is basic geohash example ####
 >>> hashcode = geohash.encode(0.0, 0.0, 10)
 >>> cur = sqlite3.connect("samples.db").cursor()
 >>> cur.execute("SELECT * FROM samples WHERE geohash LIKE ?", (hashcode+"%",))
