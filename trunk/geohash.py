@@ -234,7 +234,7 @@ def encode_uint64(latitude, longitude):
 
 def decode_uint64(ui64):
 	if _geohash:
-		latlon = _geohash.decode_int(ui64 % 0xFFFFFFFFFFFFFFFF)
+		latlon = _geohash.decode_int(ui64 % 0xFFFFFFFFFFFFFFFF, 0)
 		if latlon:
 			return latlon
 	
