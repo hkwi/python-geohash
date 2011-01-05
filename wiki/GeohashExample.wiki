@@ -14,7 +14,7 @@ geohash module provides geohash routines.
 }}}
 
  * geohash.*decode*(_hashcode`[`, delta`]`_)
- Decodes a geohash string into two floating numbers of latitude and longitude. The value is the center coordinate of specified geohash area. `delta` is optional argument to get the width and height of the area.
+ Decodes a geohash string into two floating numbers of latitude and longitude. The value is the center coordinate of specified geohash area. `delta` is optional argument to get the width and height of the area. If you want to get the left-bottom coordinate, use *bbox()* instead.
 {{{
 >>> geohash.decode('ezs42')
 (42.60498046875, -5.60302734375)
@@ -28,7 +28,7 @@ geohash module provides geohash routines.
  Alias for *decode()* with delta is True.
 
  * geohash.*bbox*(_hashcode_)
- Bounding box for a geohash hashcode. This method returns a dictionary with keys of "s", "e", "w" and "n" which means *s*outh, *e*ast, *w*est and *n*orth respectively.
+ Bounding box for a geohash hashcode. This method returns a dictionary with keys of "s", "e", "w" and "n" which means South, East, West and North respectively.
 {{{
 >>> geohash.bbox('ezs42')
 {'s': 42.5830078125, 'e': -5.5810546875, 'w': -5.625, 'n': 42.626953125}
