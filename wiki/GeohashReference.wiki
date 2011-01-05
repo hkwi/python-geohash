@@ -85,7 +85,7 @@ With geohash, we usually need a string which length is 8 or 9, 10 chars. That me
 's00000000000'
 }}}
 
-Suppose you have a database and a many coordinate samples in it. For example, you have following schema of sqlite3.
+Suppose you have a database and a many coordinate samples in it. For example, you have following schema of sqlite3. Unfortunatelly, sqlite3 does not support unsigned 64 bit integer directly, so we would shift the integer to signed 64 bit integer.
 {{{
 CREATE TABLE samples (
  geoint INTEGER,
@@ -105,7 +105,7 @@ Geohash is a good representation because it makes easy to query a small area wit
 >>> lo = geohash.encode_uint64(0.0, 0.0) & (0xFFFFFFFFFFFFFFFF<<shift)
 >>> hi = lo + (1<<shift)
 >>> cur = db.connect("samples.db").cursor()
->>> cur.execute("SELECT * FROM samples WHERE geoint>=? AND geoint<?", (lo, hi))
+>>> cur.execute("SELECT * FROM samples WHERE geoint>=? AND geoint<?", (lo-(1<<63), hi-(1<<63)))
 >>> cur.fetch_all()
 >>> #### below is basic geohash sample ####
 >>> hashcode = geohash.encode(0.0, 0.0, 10)
@@ -130,14 +130,14 @@ With uint64, you can get the ranges by expand_uint64.
 >>> for hilo from geohash.expand_uint64(ui, 45):
 >>>   if hilo[0] and hilo[1]:
 >>>     conds.append("(geoint>=? AND geoint<?)")
->>>     param.append(hilo[0])
->>>     param.append(hilo[1])
+>>>     param.append(hilo[0]-(1<<63))
+>>>     param.append(hilo[1]-(1<<63))
 >>>   elif hilo[0]:
 >>>     conds.append("geoint>=?")
->>>     param.append(hilo[0])
+>>>     param.append(hilo[0]-(1<<63))
 >>>   elif hilo[1]:
 >>>     conds.append("geoint<?")
->>>     param.append(hilo[1])
+>>>     param.append(hilo[1]-(1<<63))
 >>> 
 >>> if conds:
 >>>     db.execute("SELECT * FROM samples WHERE " + " OR ".join(conds), param)
