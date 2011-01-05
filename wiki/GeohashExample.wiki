@@ -25,7 +25,7 @@ geohash module provides geohash routines.
 }}}
 
  * geohash.*decode_exactly*(_hashcode_)
- Alias for *decode()* with delta is True.
+ Alias for *decode()* with delta is `True`.
 
  * geohash.*bbox*(_hashcode_)
  Bounding box for a geohash hashcode. This method returns a dictionary with keys of "s", "e", "w" and "n" which means South, East, West and North respectively.
@@ -35,6 +35,9 @@ geohash module provides geohash routines.
 }}}
 
  * geohash.*neighbors*(_hashcode_)
+ This method returns a neighboring geohash codes around specified one. See also *expand()*.
+
+ * geohash.*expand*(_hashcode_)
  When you want to get neighbor codes of a specific code, use neighbors(). expand() includes the center code together with neighbors().
 {{{
 >>> geohash.neighbors('ezs42')
@@ -44,6 +47,8 @@ geohash module provides geohash routines.
 }}}
 
  http://python-geohash.googlecode.com/svn/wiki/neighbors.png
+
+
 
 == Uint64 routines ==
 For most of our use case, 64bit representation is sufficient and it can be calculated *very fast* in most computers. So please do consider using 64bit integer representation instead of geohash. geohash and 64bit representations can be converted from each other.
