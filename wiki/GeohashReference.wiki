@@ -104,18 +104,19 @@ Geohash is a good representation because it makes easy to query a small area wit
 >>> shift = 64-precision
 >>> lo = geohash.encode_uint64(0.0, 0.0) & (0xFFFFFFFFFFFFFFFF<<shift)
 >>> hi = lo + (1<<shift)
->>> cur = db.connect("samples.db").cursor()
+>>> cur = sqlite3.connect("samples.db").cursor()
 >>> cur.execute("SELECT * FROM samples WHERE geoint>=? AND geoint<?", (lo-(1<<63), hi-(1<<63)))
->>> cur.fetch_all()
+>>> cur.fetchall()
 >>> #### below is basic geohash sample ####
 >>> hashcode = geohash.encode(0.0, 0.0, 10)
->>> cur = db.connect("samples.db").cursor()
+>>> cur = sqlite3.connect("samples.db").cursor()
 >>> cur.execute("SELECT * FROM samples WHERE geohash LIKE ?", (hashcode+"%",))
->>> cur.fetch_all()
+>>> cur.fetchall()
 }}}
 
 With uint64, you can get the ranges by expand_uint64.
 {{{
+>>> import sqlite3
 >>> import geohash
 >>> ui = geohash.encode_uint64(0,0)
 >>> geohash.expand_uint64(ui, 45)
@@ -139,8 +140,11 @@ With uint64, you can get the ranges by expand_uint64.
 >>>     conds.append("geoint<?")
 >>>     param.append(hilo[1]-(1<<63))
 >>> 
+>>> cur = db.connect("samples.db").cursor()
 >>> if conds:
->>>     db.execute("SELECT * FROM samples WHERE " + " OR ".join(conds), param)
+>>>     cur.execute("SELECT * FROM samples WHERE " + " OR ".join(conds), param)
 >>> else:
->>>     db.execute("SELECT * FROM samples")
+>>>     cur.execute("SELECT * FROM samples")
+>>>
+>>> cur.fetchall()
 }}}
