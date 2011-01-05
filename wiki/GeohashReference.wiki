@@ -85,14 +85,33 @@ With geohash, we usually need a string which length is 8 or 9, 10 chars. That me
 's00000000000'
 }}}
 
+Suppose you have a database and a many coordinate samples in it. For example, you have following schema of sqlite3.
+{{{
+CREATE TABLE samples (
+ geoint INTEGER,
+ geohash TEXT,
+ desc TEXT
+)
+}}}
+
 Geohash is a good representation because it makes easy to query a small area with a single data key. However, it use a string prefix match. And string prefix match could be calculated in integer range comparison with good control over the precision.
 
 {{{
+>>> import sqlite3
 >>> import geohash
+>>> #### below is uint64 sample ####
+>>> precision = 50
 >>> shift = 64-precision
 >>> lo = geohash.encode_uint64(0.0, 0.0) & (0xFFFFFFFFFFFFFFFF<<shift)
 >>> hi = lo + (1<<shift)
->>> db.execute("SELECT * FROM samples WHERE geoint>=? AND geoint<?", (lo, hi))
+>>> cur = db.connect("samples.db").cursor()
+>>> cur.execute("SELECT * FROM samples WHERE geoint>=? AND geoint<?", (lo, hi))
+>>> cur.fetch_all()
+>>> #### below is basic geohash sample ####
+>>> hashcode = geohash.encode(0.0, 0.0, 10)
+>>> cur = db.connect("samples.db").cursor()
+>>> cur.execute("SELECT * FROM samples WHERE geohash LIKE ?", (hashcode+"%",))
+>>> cur.fetch_all()
 }}}
 
 With uint64, you can get the ranges by expand_uint64.
