@@ -116,35 +116,29 @@ Geohash is a good representation because it makes easy to query a small area wit
 
 With uint64, you can get the ranges by expand_uint64.
 {{{
->>> import sqlite3
->>> import geohash
->>> ui = geohash.encode_uint64(0,0)
->>> geohash.expand_uint64(ui, 45)
-[(4611686018426863616, 4611686018427387904), 
- (7686143364045471744, 7686143364045996032), 
- (7686143364046520320, 7686143364047044608), 
- (10760600709663555584, 10760600709664604160), 
- (13835058055282163712, 13835058055284260864)]
->>> 
->>> conds = []
->>> param = []
->>> for hilo from geohash.expand_uint64(ui, 45):
->>>   if hilo[0] and hilo[1]:
->>>     conds.append("(geoint>=? AND geoint<?)")
->>>     param.append(hilo[0]-(1<<63))
->>>     param.append(hilo[1]-(1<<63))
->>>   elif hilo[0]:
->>>     conds.append("geoint>=?")
->>>     param.append(hilo[0]-(1<<63))
->>>   elif hilo[1]:
->>>     conds.append("geoint<?")
->>>     param.append(hilo[1]-(1<<63))
->>> 
->>> cur = db.connect("samples.db").cursor()
->>> if conds:
->>>     cur.execute("SELECT * FROM samples WHERE " + " OR ".join(conds), param)
->>> else:
->>>     cur.execute("SELECT * FROM samples")
->>>
->>> cur.fetchall()
+import sqlite3
+import geohash
+ui = geohash.encode_uint64(0,0)
+
+conds = []
+param = []
+for hilo in geohash.expand_uint64(ui, 15):
+  if hilo[0] and hilo[1]:
+    conds.append("(geoint>=? AND geoint<?)")
+    param.append(hilo[0]-(1<<63))
+    param.append(hilo[1]-(1<<63))
+  elif hilo[0]:
+    conds.append("geoint>=?")
+    param.append(hilo[0]-(1<<63))
+  elif hilo[1]:
+    conds.append("geoint<?")
+    param.append(hilo[1]-(1<<63))
+
+cur = sqlite3.connect("samples.db").cursor()
+if conds:
+  cur.execute("SELECT * FROM samples WHERE " + " OR ".join(conds), param)
+else:
+  cur.execute("SELECT * FROM samples")
+
+cur.fetchall()
 }}}
