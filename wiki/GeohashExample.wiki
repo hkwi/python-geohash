@@ -7,11 +7,10 @@ geohash module provides geohash routines.
  * geohash.*encode*(_latitude, longitude`[`, precision`]`_)
  Create a geohash string from two floating numbers of latitude and longitude. Precision defaults to 12, which is usually sufficient for most cases.
 {{{
->>> import geohash
->>> print 'Geohash for 42.6, -5.6:', geohash.encode(42.6, -5.6)
-Geohash for 42.6, -5.6: ezs42e44yx96
->>> print 'Geohash for 42.6, -5.6:', geohash.encode(42.6, -5.6, precision=5)
-Geohash for 42.6, -5.6: ezs42
+>>> geohash.encode(42.6, -5.6)
+'ezs42e44yx96'
+>>> geohash.encode(42.6, -5.6, precision=5)
+'ezs42'
 }}}
 
  * geohash.*decode*(_hashcode`[`, delta`]`_)
@@ -23,6 +22,9 @@ Coordinate for Geohash ezs42: (42.60498046875, -5.60302734375)
 Exact coordinate for Geohash ezs42:
 (42.60498046875, -5.60302734375, 0.02197265625, 0.02197265625)
 }}}
+
+ * geohash.*decode_exactly*(_hashcode_)
+ Alias for decode with delta is True.
 
  * geohash.*bbox*(_hashcode_)
  You can get bounding box like this:
@@ -58,7 +60,7 @@ geohash module also provide a set of uint64 (64 bit unsigned integer) representa
  
  `precision` is the number of bits, defaults to 50. 50 bits is equivalent to 10 chars in geohash. Value must be in 0 to 64, because there we have 64 bits.
 
-=== Uint64 examples ===
+=== Examples ===
 With geohash, we usually need a string which length is 8 or 9, 10 chars. That means we need at most 50bits. 32bit is not sufficient but 64bit is OK. So the two can be converted each other, while you use a geohash of less than 13 chars.
 
 {{{
