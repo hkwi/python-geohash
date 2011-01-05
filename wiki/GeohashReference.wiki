@@ -123,7 +123,7 @@ import geohash
 
 db = sqlite3.connect("samples.db")
 cur = db.cursor()
-scans = [x+"%" for x in geohash.expand(geohash.encode(0,0,3))]
+scans = [x+"%" for x in geohash.expand(geohash.encode(0,0,4))]
 conds = " OR ".join(("geohash LIKE ?",)*len(scans))
 if conds:
 	cur.execute("SELECT * FROM samples WHERE "+conds, scans)
@@ -141,7 +141,7 @@ ui = geohash.encode_uint64(0,0)
 
 conds = []
 param = []
-for hilo in geohash.expand_uint64(ui, 15):
+for hilo in geohash.expand_uint64(ui, 20):
   if hilo[0] and hilo[1]:
     conds.append("(geoint>=? AND geoint<?)")
     param.append(hilo[0]-(1<<63))
