@@ -97,21 +97,40 @@ CREATE TABLE samples (
 Geohash is a good representation because it makes easy to query a small area with a single data key. However, it use a string prefix match. And string prefix match could be calculated in integer range comparison with good control over the precision.
 
 {{{
->>> import sqlite3
->>> import geohash
->>> #### below is uint64 example ####
->>> precision = 50
->>> shift = 64-precision
->>> lo = geohash.encode_uint64(0.0, 0.0) & (0xFFFFFFFFFFFFFFFF<<shift)
->>> hi = lo + (1<<shift)
->>> cur = sqlite3.connect("samples.db").cursor()
->>> cur.execute("SELECT * FROM samples WHERE geoint>=? AND geoint<?", (lo-(1<<63), hi-(1<<63)))
->>> cur.fetchall()
->>> #### below is basic geohash example ####
->>> hashcode = geohash.encode(0.0, 0.0, 10)
->>> cur = sqlite3.connect("samples.db").cursor()
->>> cur.execute("SELECT * FROM samples WHERE geohash LIKE ?", (hashcode+"%",))
->>> cur.fetchall()
+import sqlite3
+import geohash
+
+#### below is uint64 example ####
+precision = 50
+shift = 64-precision
+lo = geohash.encode_uint64(0.0, 0.0) & (0xFFFFFFFFFFFFFFFF<<shift)
+hi = lo + (1<<shift)
+cur = sqlite3.connect("samples.db").cursor()
+cur.execute("SELECT * FROM samples WHERE geoint>=? AND geoint<?", (lo-(1<<63), hi-(1<<63)))
+cur.fetchall()
+
+#### below is basic geohash example ####
+hashcode = geohash.encode(0.0, 0.0, 10)
+cur = sqlite3.connect("samples.db").cursor()
+cur.execute("SELECT * FROM samples WHERE geohash LIKE ?", (hashcode+"%",))
+cur.fetchall()
+}}}
+
+Following shows how to perform near-by search with geohash.
+{{{
+import sqlite3
+import geohash
+
+db = sqlite3.connect("samples.db")
+cur = db.cursor()
+scans = [x+"%" for x in geohash.expand(geohash.encode(0,0,3))]
+conds = " OR ".join(("geohash LIKE ?",)*len(scans))
+if conds:
+	cur.execute("SELECT * FROM samples WHERE "+conds, scans)
+else:
+	cur.execute("SELECT * FROM samples")
+
+cur.fetchall()
 }}}
 
 With uint64, you can get the ranges by expand_uint64.
