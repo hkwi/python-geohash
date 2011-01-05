@@ -57,9 +57,17 @@ geohash module also provide a set of uint64 (64 bit unsigned integer) representa
 
  * geohash.*encode_uint64*(_latitude, longitude_)
  This function encodes geometric coordinates of two doubles into one unsinged 64 bit integer.
+{{{
+>>> geohash.encode_uint64(42.6, -5.6)
+8066018626445464163
+}}}
 
  * geohash.*decode_uint64*(_ui64_)
  This function decode one 64 bit unsigned integer into two doubles.
+{{{
+>>> geohash.decode_uint64(8066018626445464163)
+(42.59999998379499, -5.600000051781535)
+}}}
 
  * geohash.*expand_uint64*(_ui64`[`, precision`]`_)
  This function returns integer ranges that cover the expanded area of specified ui64, unsigned 64 bit integer. The ranges are list of two element tuples, which means lower boundary and higher boundary. If the element has None, then you don't have to check that boundary.
