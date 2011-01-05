@@ -15,6 +15,7 @@ Geohash for 42.6, -5.6: ezs42
 }}}
 
  * geohash.*decode*(_hashcode`[`, delta`]`_)
+ Decodes a geohash string into two floating numbers of latitude and longitude. The value is the center coordinate of specified geohash area. `delta` is optional argument to get the width and height of the area.
 {{{
 >>> print 'Coordinate for Geohash ezs42:', geohash.decode('ezs42')
 Coordinate for Geohash ezs42: (42.60498046875, -5.60302734375)
