@@ -133,7 +133,7 @@ else:
 cur.fetchall()
 }}}
 
-With uint64, you can get the ranges by expand_uint64.
+With uint64, you can get the ranges by expand_uint64. The following code runs about 4 times faster than above geohash string code.
 {{{
 import sqlite3
 import geohash
