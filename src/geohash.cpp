@@ -388,19 +388,24 @@ static int uint8s_plus_minus(uint8_t *src, uint8_t *dst, size_t length, int plus
 	int up = 1;
 	while(up){
 		uint8_t t;
+		up = 0;
 		if(plus){
 			t = src[cell] + (1<<cell_offset);
+			if((src[cell]&0x80) && !(t&0x80)){
+				up = 1;
+			}
 		}else{
 			t = src[cell] - (1<<cell_offset);
-		}
-		if((src[cell]&0x80) == (t&0x80)){
-			up = 0;
+			if(!(src[cell]&0x80) && (t&0x80)){
+				up = 1;
+			}
 		}
 		dst[cell] = t;
 		cell_offset = 0;
 		if(cell == 0){
 			break;
 		}
+		cell--;
 	}
 	return !0;
 }
