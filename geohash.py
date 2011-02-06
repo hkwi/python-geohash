@@ -15,6 +15,37 @@ for i in range(len(_base32)):
 	_base32_map[_base32[i]] = i
 del i
 
+def _float_hex_to_int(f):
+	if f<-1.0 or f>=1.0:
+		return None
+	
+	if f==0.0:
+		return 1,1
+	
+	h = f.hex()
+	x = h.find("0x1.")
+	assert(x>=0)
+	p = h.find("p")
+	assert(p>0)
+	
+	half_len = len(h[x+4:p])*4-int(h[p+1:])
+	if x==0:
+		r = (1<<half_len) + ((1<<(len(h[x+4:p])*4)) + int(h[x+4:p],16))
+	else:
+		r = (1<<half_len) - ((1<<(len(h[x+4:p])*4)) + int(h[x+4:p],16))
+	
+	return r, half_len+1
+
+def _int_to_float_hex(i, l):
+	half = 1<<(l-1)
+	s = int(l+3/4)
+	if i >= half:
+		i = i-half
+		return float.fromhex(("0x0.%0"+str(s)+"xp1") % (i<<(s*4-l),))
+	else:
+		i = half-i
+		return float.fromhex(("-0x0.%0"+str(s)+"xp1") % (i<<(s*4-l),))
+
 def _encode_i2c(lat,lon,lat_length,lon_length):
 	precision = int((lat_length+lon_length)/5)
 	if lat_length < lon_length:
@@ -48,13 +79,28 @@ def encode(latitude, longitude, precision=12):
 			return basecode[0:precision]
 		return basecode+'0'*(precision-len(basecode))
 	
-	lat = latitude/180.0
-	lon = longitude/360.0
-	
 	xprecision=precision+1
 	lat_length = lon_length = int(xprecision*5/2)
 	if xprecision%2==1:
 		lon_length+=1
+	
+	if float.fromhex:
+		a = _float_hex_to_int(latitude/90.0)
+		o = _float_hex_to_int(longitude/180.0)
+		if a[1] > lat_length:
+			ai = a[0]>>(a[1]-lat_length)
+		else:
+			ai = a[0]<<(lat_length-a[1])
+		
+		if o[1] > lon_length:
+			oi = o[0]>>(o[1]-lon_length)
+		else:
+			oi = o[0]<<(lon_length-o[1])
+		
+		return _encode_i2c(ai, oi, lat_length, lon_length)[:precision]
+	
+	lat = latitude/180.0
+	lon = longitude/360.0
 	
 	if lat>0:
 		lat = int((1<<lat_length)*lat)+(1<<(lat_length-1))
@@ -117,6 +163,15 @@ def decode(hashcode, delta=False):
 	
 	(lat,lon,lat_length,lon_length) = _decode_c2i(hashcode)
 	
+	if float.fromhex:
+		latitude_delta  = 90.0/(1<<lat_length)
+		longitude_delta = 180.0/(1<<lon_length)
+		latitude = _int_to_float_hex(lat, lat_length) * 90.0 + latitude_delta
+		longitude = _int_to_float_hex(lon, lon_length) * 180.0 + longitude_delta
+		if delta:
+			print(latitude,longitude,latitude_delta,longitude_delta)
+		print(latitude,longitude)
+	
 	lat = (lat<<1) + 1
 	lon = (lon<<1) + 1
 	lat_length += 1
@@ -147,6 +202,13 @@ def bbox(hashcode):
 		return {'s':lat,'w':lon,'n':lat+latitude_delta,'e':lon+longitude_delta}
 	
 	(lat,lon,lat_length,lon_length) = _decode_c2i(hashcode)
+	if float.fromhex:
+		latitude_delta  = 90.0/(1<<(lat_length-1))
+		longitude_delta = 180.0/(1<<(lon_length-1))
+		latitude = _int_to_float_hex(lat, lat_length) * 90.0
+		longitude = _int_to_float_hex(lon, lon_length) * 180.0
+		return {"s":latitude, "w":longitude, "n":latitude+latitude_delta, "e":longitude+longitude_delta}
+	
 	ret={}
 	if lat_length:
 		ret['n'] = 180.0*(lat+1-(1<<(lat_length-1)))/(1<<lat_length)
@@ -167,6 +229,7 @@ def bbox(hashcode):
 def neighbors(hashcode):
 	if _geohash and len(hashcode)<25:
 		return _geohash.neighbors(hashcode)
+	
 	(lat,lon,lat_length,lon_length) = _decode_c2i(hashcode)
 	ret = []
 	tlat = lat
