@@ -37,8 +37,11 @@ def _float_hex_to_int(f):
 	return r, half_len+1
 
 def _int_to_float_hex(i, l):
+	if l==0:
+		return -1.0
+	
 	half = 1<<(l-1)
-	s = int(l+3/4)
+	s = int((l+3)/4)
 	if i >= half:
 		i = i-half
 		return float.fromhex(("0x0.%0"+str(s)+"xp1") % (i<<(s*4-l),))
@@ -169,8 +172,8 @@ def decode(hashcode, delta=False):
 		latitude = _int_to_float_hex(lat, lat_length) * 90.0 + latitude_delta
 		longitude = _int_to_float_hex(lon, lon_length) * 180.0 + longitude_delta
 		if delta:
-			print(latitude,longitude,latitude_delta,longitude_delta)
-		print(latitude,longitude)
+			return latitude,longitude,latitude_delta,longitude_delta
+		return latitude,longitude
 	
 	lat = (lat<<1) + 1
 	lon = (lon<<1) + 1
@@ -203,8 +206,8 @@ def bbox(hashcode):
 	
 	(lat,lon,lat_length,lon_length) = _decode_c2i(hashcode)
 	if float.fromhex:
-		latitude_delta  = 90.0/(1<<(lat_length-1))
-		longitude_delta = 180.0/(1<<(lon_length-1))
+		latitude_delta  = 180.0/(1<<lat_length)
+		longitude_delta = 360.0/(1<<lon_length)
 		latitude = _int_to_float_hex(lat, lat_length) * 90.0
 		longitude = _int_to_float_hex(lon, lon_length) * 180.0
 		return {"s":latitude, "w":longitude, "n":latitude+latitude_delta, "e":longitude+longitude_delta}
