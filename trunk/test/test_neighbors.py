@@ -10,5 +10,5 @@ class TestEncode(unittest.TestCase):
 		self.assertEqual(set(['w', 'x', 'y', '8', 'b']), set(geohash.neighbors("z")))
 		self.assertEqual(set(['2', '6', '1', '0', '4', '9', '8', 'd']), set(geohash.neighbors("3")))
 
-# if __name__=='__main__':
-# 	unittest.main()
+if __name__=='__main__':
+	unittest.main()
