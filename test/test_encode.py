@@ -6,5 +6,5 @@ class TestEncode(unittest.TestCase):
 		for code in ["000000000000","zzzzzzzzzzzz","bgr96qxvpd46",]:
 			self.assertEqual(code, geohash.encode(*geohash.decode(code)))
 
-# if __name__=='__main__':
-# 	unittest.main()
+if __name__=='__main__':
+	unittest.main()
