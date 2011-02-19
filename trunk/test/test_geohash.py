@@ -1,6 +1,11 @@
 import unittest
 import geohash
 
+class TestEncode(unittest.TestCase):
+	def test_cycle(self):
+		for code in ["000000000000","zzzzzzzzzzzz","bgr96qxvpd46",]:
+			self.assertEqual(code, geohash.encode(*geohash.decode(code)))
+
 class TestDecode(unittest.TestCase):
 	def test_empty(self):
 		self.assertEqual(
@@ -53,6 +58,15 @@ class TestDecode(unittest.TestCase):
 		x=geohash.bbox('ezs42')
 		self.assertEqual(round(x['s'],3), 42.583)
 		self.assertEqual(round(x['n'],3), 42.627)
+
+class TestNeighbors(unittest.TestCase):
+	def test_empty(self):
+		self.assertEqual([], geohash.neighbors(""))
+	
+	def test_one(self):
+		self.assertEqual(set(['1', '2', '3', 'p', 'r']), set(geohash.neighbors("0")))
+		self.assertEqual(set(['w', 'x', 'y', '8', 'b']), set(geohash.neighbors("z")))
+		self.assertEqual(set(['2', '6', '1', '0', '4', '9', '8', 'd']), set(geohash.neighbors("3")))
 
 if __name__=='__main__':
 	unittest.main()
