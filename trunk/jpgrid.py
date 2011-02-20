@@ -42,7 +42,7 @@ def _encode_i2c(lat, lon, base1):
 	return ''.join([str(i) for i in t])
 
 def encode(latitude, longitude, base1=80):
-	return _encode_i2c(int(latitude*base1*1.5), int((longitude-100)*base1), base1)
+	return _encode_i2c(int(latitude*base1*1.5), int(longitude*base1-100.0*base1), base1)
 
 #def _encode_i2c(lat, lon, base1):
 def _decode_c2i(gridcode):
@@ -97,6 +97,7 @@ def decode_sw(gridcode, delta=False):
 def decode(gridcode):
 	(lat, lon, base1) = _decode_c2i(gridcode)
 	
+	# center position of the meshcode.
 	lat = (lat<<1) + 1
 	lon = (lon<<1) + 1
 	base1 = base1<<1
