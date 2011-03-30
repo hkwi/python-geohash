@@ -15,6 +15,11 @@ for i in range(len(_base32)):
 	_base32_map[_base32[i]] = i
 del i
 
+LONG_ZERO = 0
+import sys
+if sys.version_info.major < 3:
+	LONG_ZERO = long(0)
+
 def _float_hex_to_int(f):
 	if f<-1.0 or f>=1.0:
 		return None
@@ -300,7 +305,7 @@ def encode_uint64(latitude, longitude):
 
 def decode_uint64(ui64):
 	if _geohash:
-		latlon = _geohash.decode_int(ui64 % 0xFFFFFFFFFFFFFFFF, 0L)
+		latlon = _geohash.decode_int(ui64 % 0xFFFFFFFFFFFFFFFF, LONG_ZERO)
 		if latlon:
 			return latlon
 	
