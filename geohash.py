@@ -17,7 +17,7 @@ del i
 
 LONG_ZERO = 0
 import sys
-if sys.version_info.major < 3:
+if sys.version_info[0] < 3:
 	LONG_ZERO = long(0)
 
 def _float_hex_to_int(f):
@@ -92,7 +92,7 @@ def encode(latitude, longitude, precision=12):
 	if xprecision%2==1:
 		lon_length+=1
 	
-	if float.fromhex:
+	if hasattr(float, "fromhex"):
 		a = _float_hex_to_int(latitude/90.0)
 		o = _float_hex_to_int(longitude/180.0)
 		if a[1] > lat_length:
@@ -171,7 +171,7 @@ def decode(hashcode, delta=False):
 	
 	(lat,lon,lat_length,lon_length) = _decode_c2i(hashcode)
 	
-	if float.fromhex:
+	if hasattr(float, "fromhex"):
 		latitude_delta  = 90.0/(1<<lat_length)
 		longitude_delta = 180.0/(1<<lon_length)
 		latitude = _int_to_float_hex(lat, lat_length) * 90.0 + latitude_delta
@@ -210,7 +210,7 @@ def bbox(hashcode):
 		return {'s':lat,'w':lon,'n':lat+latitude_delta,'e':lon+longitude_delta}
 	
 	(lat,lon,lat_length,lon_length) = _decode_c2i(hashcode)
-	if float.fromhex:
+	if hasattr(float, "fromhex"):
 		latitude_delta  = 180.0/(1<<lat_length)
 		longitude_delta = 360.0/(1<<lon_length)
 		latitude = _int_to_float_hex(lat, lat_length) * 90.0
