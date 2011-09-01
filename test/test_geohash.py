@@ -58,6 +58,11 @@ class TestDecode(unittest.TestCase):
 		x=geohash.bbox('ezs42')
 		self.assertEqual(round(x['s'],3), 42.583)
 		self.assertEqual(round(x['n'],3), 42.627)
+	
+	def test_issue12(self):
+		ll=geohash.decode(geohash.encode(51.566141,-0.009434,24))
+		self.assertAlmostEqual(ll[0], 51.566141)
+		self.assertAlmostEqual(ll[1], -0.009434)
 
 class TestNeighbors(unittest.TestCase):
 	def test_empty(self):

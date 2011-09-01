@@ -103,7 +103,7 @@ static inline int double_to_i64(double in, uint64_t *out){
 	if(shift > 0){
 		x.i64 <<= shift;
 	}else{
-		x.i64 >>= shift;
+		x.i64 >>= -shift;
 	}
 	if(sign){
 		x.i64 =  UINT64_C(0x8000000000000000) - x.i64;
