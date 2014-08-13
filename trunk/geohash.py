@@ -7,6 +7,7 @@ try:
 except ImportError:
 	_geohash = None
 
+__version__ = "0.8.5"
 __all__ = ['encode','decode','decode_exactly','bbox', 'neighbors', 'expand']
 
 _base32 = '0123456789bcdefghjkmnpqrstuvwxyz'
