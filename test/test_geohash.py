@@ -63,6 +63,13 @@ class TestDecode(unittest.TestCase):
 		ll=geohash.decode(geohash.encode(51.566141,-0.009434,24))
 		self.assertAlmostEqual(ll[0], 51.566141)
 		self.assertAlmostEqual(ll[1], -0.009434)
+	
+	def test_issue20(self):
+		for long in range(-180,180,45):
+			# Encode and Decode for check
+			ll = geohash.decode(geohash.encode(90.0, long))
+			self.assertAlmostEqual(ll[0], 90.0, 5)
+			self.assertAlmostEqual(ll[1], long, 5)
 
 class TestNeighbors(unittest.TestCase):
 	def test_empty(self):
