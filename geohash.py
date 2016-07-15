@@ -22,12 +22,21 @@ if sys.version_info[0] < 3:
 	LONG_ZERO = long(0)
 
 def _float_hex_to_int(f):
-	if f<-1.0 or f>=1.0:
+	# Out of Bound Error
+	if f<-1.0 or f>1.0:
 		return None
-	
-	if f==0.0:
+
+	# 0 Edge Case Return
+	if f == 0.0:
 		return 1,1
-	
+
+	# Edge Cases Clamp Fix
+	if f > 1.0 - sys.float_info.epsilon:
+		f = 1.0 - sys.float_info.epsilon
+	if f < -1.0 + sys.float_info.epsilon:
+		f = -1.0 + sys.float_info.epsilon
+
+	# Normal Case
 	h = f.hex()
 	x = h.find("0x1.")
 	assert(x>=0)
@@ -74,53 +83,54 @@ def _encode_i2c(lat,lon,lat_length,lon_length):
 	
 	return ret[::-1]
 
-def encode(latitude, longitude, precision=12):
-	if latitude >= 90.0 or latitude < -90.0:
+def encode(latitude, longitude,precision=12):
+	# Check Latitude
+	if latitude > 90.0 or latitude < -90.0:
 		raise Exception("invalid latitude.")
-	while longitude < -180.0:
-		longitude += 360.0
-	while longitude >= 180.0:
-		longitude -= 360.0
-	
-	if _geohash:
+
+	# Wrap Longitude
+	longitude = (longitude + 180.0) % 360.0 - 180.0
+
+	if _geohash and latitude < 90:
 		basecode=_geohash.encode(latitude,longitude)
 		if len(basecode)>precision:
 			return basecode[0:precision]
 		return basecode+'0'*(precision-len(basecode))
-	
+
 	xprecision=precision+1
 	lat_length = lon_length = int(xprecision*5/2)
 	if xprecision%2==1:
 		lon_length+=1
-	
+
 	if hasattr(float, "fromhex"):
 		a = _float_hex_to_int(latitude/90.0)
 		o = _float_hex_to_int(longitude/180.0)
+
 		if a[1] > lat_length:
 			ai = a[0]>>(a[1]-lat_length)
 		else:
 			ai = a[0]<<(lat_length-a[1])
-		
+
 		if o[1] > lon_length:
 			oi = o[0]>>(o[1]-lon_length)
 		else:
 			oi = o[0]<<(lon_length-o[1])
-		
+
 		return _encode_i2c(ai, oi, lat_length, lon_length)[:precision]
-	
+
 	lat = latitude/180.0
 	lon = longitude/360.0
-	
+
 	if lat>0:
 		lat = int((1<<lat_length)*lat)+(1<<(lat_length-1))
 	else:
 		lat = (1<<lat_length-1)-int((1<<lat_length)*(-lat))
-	
+
 	if lon>0:
 		lon = int((1<<lon_length)*lon)+(1<<(lon_length-1))
 	else:
 		lon = (1<<lon_length-1)-int((1<<lon_length)*(-lon))
-	
+
 	return _encode_i2c(lat,lon,lat_length,lon_length)[:precision]
 
 def _decode_c2i(hashcode):
