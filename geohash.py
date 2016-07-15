@@ -22,12 +22,21 @@ if sys.version_info[0] < 3:
 	LONG_ZERO = long(0)
 
 def _float_hex_to_int(f):
-	if f<-1.0 or f>=1.0:
+	# Out of Bound Error
+	if f<-1.0 or f>1.0:
 		return None
 	
-	if f==0.0:
+	# 0 Edge Case Return
+	if f == 0.0:
 		return 1,1
+
+	# Edge Cases Clamp Fix
+	if f > 1.0 - sys.float_info.epsilon:
+		f = 1.0 - sys.float_info.epsilon
+	if f < -1.0 + sys.float_info.epsilon:
+		f = -1.0 + sys.float_info.epsilon
 	
+	# Normal Case
 	h = f.hex()
 	x = h.find("0x1.")
 	assert(x>=0)
@@ -75,12 +84,12 @@ def _encode_i2c(lat,lon,lat_length,lon_length):
 	return ret[::-1]
 
 def encode(latitude, longitude, precision=12):
-	if latitude >= 90.0 or latitude < -90.0:
+	# Check Latitude
+	if latitude > 90.0 or latitude < -90.0:
 		raise Exception("invalid latitude.")
-	while longitude < -180.0:
-		longitude += 360.0
-	while longitude >= 180.0:
-		longitude -= 360.0
+
+	# Wrap Longitude
+	longitude = (longitude + 180.0) % 360.0 - 180.0
 	
 	if _geohash:
 		basecode=_geohash.encode(latitude,longitude)
