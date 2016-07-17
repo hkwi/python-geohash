@@ -31,10 +31,8 @@ def _float_hex_to_int(f):
 		return 1,1
 
 	# Edge Cases Clamp Fix
-	if f > 1.0 - sys.float_info.epsilon:
-		f = 1.0 - sys.float_info.epsilon
-	if f < -1.0 + sys.float_info.epsilon:
-		f = -1.0 + sys.float_info.epsilon
+	if f == 1.0:
+    	return (1 << 100) - 1, 100
 	
 	# Normal Case
 	h = f.hex()
