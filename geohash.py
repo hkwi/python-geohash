@@ -87,7 +87,10 @@ def encode(latitude, longitude, precision=12):
 		raise Exception("invalid latitude.")
 
 	# Wrap Longitude
-	longitude = (longitude + 180.0) % 360.0 - 180.0
+	while longitude < -180.0:
+		longitude += 360.0
+	while longitude >= 180.0:
+		longitude -= 360.0
 	
 	if _geohash:
 		basecode=_geohash.encode(latitude,longitude)
