@@ -9,13 +9,13 @@ def _encode_i2c(lat,lon,basebits):
 		t.append((lat&1)*2 + (lon&1))
 		lat = lat>>1
 		lon = lon>>1
-	
+
 	if basebits>=3:
 		t.append(lon&7)
 		t.append(lat&7)
 		lat = lat>>3
 		lon = lon>>3
-	
+
 	t.append(lon)
 	t.append(lat)
 	t.reverse()
@@ -23,8 +23,8 @@ def _encode_i2c(lat,lon,basebits):
 
 def encode(lat, lon):
 	if lat<7 or lon<100:
-		raise Exception('Unsupported location')
-	
+		raise ValueError('Latitude cannot be less than 7, Longitude cannot be less than 100')
+
 	basebits = 8
 	return _encode_i2c(int(lat * (1<<basebits) * 1.5), int((lon-100.0)*(1<<basebits)), basebits)
 
@@ -38,21 +38,21 @@ def _decode_c2i(gridcode):
 			lon = (lon<<1) + int(i)%2
 			base = base<<1
 			basebits += 1
-	
+
 	if len(gridcode)>4:
 		lat = int(gridcode[4:5])*base + lat
 		lon = int(gridcode[5:6])*base + lon
 		base = base<<3
 		basebits += 3
-	
+
 	lat = int(gridcode[0:2])*base + lat
 	lon = int(gridcode[2:4])*base + lon
-	
+
 	return (lat, lon, basebits)
 
 def decode_sw(gridcode, delta=False):
 	lat, lon, basebits = _decode_c2i(gridcode)
-	
+
 	if delta:
 		return (float(lat)/(1.5*(1<<basebits)), float(lon)/(1<<basebits)+100.0, 1.0/(1.5*(1<<basebits)), 1.0/(1<<basebits))
 	else:
@@ -76,9 +76,9 @@ def neighbors(gridcode):
 			continue
 		if tlon<0 or tlon>(100<<basebits):
 			continue
-		
+
 		ret.append(_encode_i2c(tlat,tlon,basebits))
-	
+
 	return ret
 
 def expand(gridcode):

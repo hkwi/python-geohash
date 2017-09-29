@@ -24,28 +24,28 @@ if sys.version_info[0] < 3:
 def _float_hex_to_int(f):
 	if f<-1.0 or f>=1.0:
 		return None
-	
+
 	if f==0.0:
 		return 1,1
-	
+
 	h = f.hex()
 	x = h.find("0x1.")
 	assert(x>=0)
 	p = h.find("p")
 	assert(p>0)
-	
+
 	half_len = len(h[x+4:p])*4-int(h[p+1:])
 	if x==0:
 		r = (1<<half_len) + ((1<<(len(h[x+4:p])*4)) + int(h[x+4:p],16))
 	else:
 		r = (1<<half_len) - ((1<<(len(h[x+4:p])*4)) + int(h[x+4:p],16))
-	
+
 	return r, half_len+1
 
 def _int_to_float_hex(i, l):
 	if l==0:
 		return -1.0
-	
+
 	half = 1<<(l-1)
 	s = int((l+3)/4)
 	if i >= half:
@@ -63,7 +63,7 @@ def _encode_i2c(lat,lon,lat_length,lon_length):
 	else:
 		a = lat
 		b = lon
-	
+
 	boost = (0,1,4,5,16,17,20,21)
 	ret = ''
 	for i in range(precision):
@@ -71,28 +71,28 @@ def _encode_i2c(lat,lon,lat_length,lon_length):
 		t = a>>3
 		a = b>>2
 		b = t
-	
+
 	return ret[::-1]
 
 def encode(latitude, longitude, precision=12):
 	if latitude >= 90.0 or latitude < -90.0:
-		raise Exception("invalid latitude.")
+		raise ValueError("Latitude must be in the range of (-90.0, 90.0)")
 	while longitude < -180.0:
 		longitude += 360.0
 	while longitude >= 180.0:
 		longitude -= 360.0
-	
+
 	if _geohash:
 		basecode=_geohash.encode(latitude,longitude)
 		if len(basecode)>precision:
 			return basecode[0:precision]
 		return basecode+'0'*(precision-len(basecode))
-	
+
 	xprecision=precision+1
 	lat_length = lon_length = int(xprecision*5/2)
 	if xprecision%2==1:
 		lon_length+=1
-	
+
 	if hasattr(float, "fromhex"):
 		a = _float_hex_to_int(latitude/90.0)
 		o = _float_hex_to_int(longitude/180.0)
@@ -100,27 +100,27 @@ def encode(latitude, longitude, precision=12):
 			ai = a[0]>>(a[1]-lat_length)
 		else:
 			ai = a[0]<<(lat_length-a[1])
-		
+
 		if o[1] > lon_length:
 			oi = o[0]>>(o[1]-lon_length)
 		else:
 			oi = o[0]<<(lon_length-o[1])
-		
+
 		return _encode_i2c(ai, oi, lat_length, lon_length)[:precision]
-	
+
 	lat = latitude/180.0
 	lon = longitude/360.0
-	
+
 	if lat>0:
 		lat = int((1<<lat_length)*lat)+(1<<(lat_length-1))
 	else:
 		lat = (1<<lat_length-1)-int((1<<lat_length)*(-lat))
-	
+
 	if lon>0:
 		lon = int((1<<lon_length)*lon)+(1<<(lon_length-1))
 	else:
 		lon = (1<<lon_length-1)-int((1<<lon_length)*(-lon))
-	
+
 	return _encode_i2c(lat,lon,lat_length,lon_length)[:precision]
 
 def _decode_c2i(hashcode):
@@ -151,9 +151,9 @@ def _decode_c2i(hashcode):
 			lat += t&1
 			lon_length+=2
 			lat_length+=3
-		
+
 		bit_length+=5
-	
+
 	return (lat,lon,lat_length,lon_length)
 
 def decode(hashcode, delta=False):
@@ -169,9 +169,9 @@ def decode(hashcode, delta=False):
 		if delta:
 			return latitude,longitude,latitude_delta,longitude_delta
 		return latitude,longitude
-	
+
 	(lat,lon,lat_length,lon_length) = _decode_c2i(hashcode)
-	
+
 	if hasattr(float, "fromhex"):
 		latitude_delta  = 90.0/(1<<lat_length)
 		longitude_delta = 180.0/(1<<lon_length)
@@ -180,19 +180,19 @@ def decode(hashcode, delta=False):
 		if delta:
 			return latitude,longitude,latitude_delta,longitude_delta
 		return latitude,longitude
-	
+
 	lat = (lat<<1) + 1
 	lon = (lon<<1) + 1
 	lat_length += 1
 	lon_length += 1
-	
+
 	latitude  = 180.0*(lat-(1<<(lat_length-1)))/(1<<lat_length)
 	longitude = 360.0*(lon-(1<<(lon_length-1)))/(1<<lon_length)
 	if delta:
 		latitude_delta  = 180.0/(1<<lat_length)
 		longitude_delta = 360.0/(1<<lon_length)
 		return latitude,longitude,latitude_delta,longitude_delta
-	
+
 	return latitude,longitude
 
 def decode_exactly(hashcode):
@@ -209,7 +209,7 @@ def bbox(hashcode):
 		latitude_delta = 180.0/(1<<lat_bits)
 		longitude_delta = 360.0/(1<<lon_bits)
 		return {'s':lat,'w':lon,'n':lat+latitude_delta,'e':lon+longitude_delta}
-	
+
 	(lat,lon,lat_length,lon_length) = _decode_c2i(hashcode)
 	if hasattr(float, "fromhex"):
 		latitude_delta  = 180.0/(1<<lat_length)
@@ -217,7 +217,7 @@ def bbox(hashcode):
 		latitude = _int_to_float_hex(lat, lat_length) * 90.0
 		longitude = _int_to_float_hex(lon, lon_length) * 180.0
 		return {"s":latitude, "w":longitude, "n":latitude+latitude_delta, "e":longitude+longitude_delta}
-	
+
 	ret={}
 	if lat_length:
 		ret['n'] = 180.0*(lat+1-(1<<(lat_length-1)))/(1<<lat_length)
@@ -225,20 +225,20 @@ def bbox(hashcode):
 	else: # can't calculate the half with bit shifts (negative shift)
 		ret['n'] = 90.0
 		ret['s'] = -90.0
-	
+
 	if lon_length:
 		ret['e'] = 360.0*(lon+1-(1<<(lon_length-1)))/(1<<lon_length)
 		ret['w'] = 360.0*(lon-(1<<(lon_length-1)))/(1<<lon_length)
 	else: # can't calculate the half with bit shifts (negative shift)
 		ret['e'] = 180.0
 		ret['w'] = -180.0
-	
+
 	return ret
 
 def neighbors(hashcode):
 	if _geohash and len(hashcode)<25:
 		return _geohash.neighbors(hashcode)
-	
+
 	(lat,lon,lat_length,lon_length) = _decode_c2i(hashcode)
 	ret = []
 	tlat = lat
@@ -246,17 +246,17 @@ def neighbors(hashcode):
 		code = _encode_i2c(tlat,tlon,lat_length,lon_length)
 		if code:
 			ret.append(code)
-	
+
 	tlat = lat+1
 	if not tlat >> lat_length:
 		for tlon in (lon-1, lon, lon+1):
 			ret.append(_encode_i2c(tlat,tlon,lat_length,lon_length))
-	
+
 	tlat = lat-1
 	if tlat >= 0:
 		for tlon in (lon-1, lon, lon+1):
 			ret.append(_encode_i2c(tlat,tlon,lat_length,lon_length))
-	
+
 	return ret
 
 def expand(hashcode):
@@ -269,7 +269,7 @@ def _uint64_interleave(lat32, lon32):
 	boost = (0,1,4,5,16,17,20,21,64,65,68,69,80,81,84,85)
 	for i in range(8):
 		intr = (intr<<8) + (boost[(lon32>>(28-i*4))%16]<<1) + boost[(lat32>>(28-i*4))%16]
-	
+
 	return intr
 
 def _uint64_deinterleave(ui64):
@@ -280,7 +280,7 @@ def _uint64_deinterleave(ui64):
 		p = boost[(ui64>>(60-i*4))%16]
 		lon = (lon<<2) + p[0]
 		lat = (lat<<2) + p[1]
-	
+
 	return (lat, lon)
 
 def encode_uint64(latitude, longitude):
@@ -290,7 +290,7 @@ def encode_uint64(latitude, longitude):
 		longitude += 360.0
 	while longitude >= 180.0:
 		longitude -= 360.0
-	
+
 	if _geohash:
 		ui128 = _geohash.encode_int(latitude,longitude)
 		if _geohash.intunit == 64:
@@ -299,7 +299,7 @@ def encode_uint64(latitude, longitude):
 			return (ui128[0]<<32) + ui128[1]
 		elif _geohash.intunit == 16:
 			return (ui128[0]<<48) + (ui128[1]<<32) + (ui128[2]<<16) + ui128[3]
-	
+
 	lat = int(((latitude + 90.0)/180.0)*(1<<32))
 	lon = int(((longitude+180.0)/360.0)*(1<<32))
 	return _uint64_interleave(lat, lon)
@@ -309,7 +309,7 @@ def decode_uint64(ui64):
 		latlon = _geohash.decode_int(ui64 % 0xFFFFFFFFFFFFFFFF, LONG_ZERO)
 		if latlon:
 			return latlon
-	
+
 	lat,lon = _uint64_deinterleave(ui64)
 	return (180.0*lat/(1<<32) - 90.0, 360.0*lon/(1<<32) - 180.0)
 
@@ -318,10 +318,10 @@ def expand_uint64(ui64, precision=50):
 	lat,lon = _uint64_deinterleave(ui64)
 	lat_grid = 1<<(32-int(precision/2))
 	lon_grid = lat_grid>>(precision%2)
-	
+
 	if precision<=2: # expand becomes to the whole range
 		return []
-	
+
 	ranges = []
 	if lat & lat_grid:
 		if lon & lon_grid:
@@ -331,7 +331,7 @@ def expand_uint64(ui64, precision=50):
 				# lat,lon = (1, 1) and even precision
 				ui64 = _uint64_interleave(lat-lat_grid, lon+lon_grid)
 				ranges.append((ui64, ui64 + (1<<(64-precision+1))))
-				
+
 				if lat + lat_grid < 0xFFFFFFFF:
 					ui64 = _uint64_interleave(lat+lat_grid, lon-lon_grid)
 					ranges.append((ui64, ui64 + (1<<(64-precision))))
@@ -344,10 +344,10 @@ def expand_uint64(ui64, precision=50):
 				if lat + lat_grid < 0xFFFFFFFF:
 					ui64 = _uint64_interleave(lat+lat_grid, lon-lon_grid)
 					ranges.append((ui64, ui64 + (1<<(64-precision+1))))
-					
+
 					ui64 = _uint64_interleave(lat+lat_grid, lon+lon_grid)
 					ranges.append((ui64, ui64 + (1<<(64-precision))))
-				
+
 				ui64 = _uint64_interleave(lat, lon+lon_grid)
 				ranges.append((ui64, ui64 + (1<<(64-precision))))
 				ui64 = _uint64_interleave(lat-lat_grid, lon+lon_grid)
@@ -359,7 +359,7 @@ def expand_uint64(ui64, precision=50):
 				# lat,lon = (1, 0) and odd precision
 				ui64 = _uint64_interleave(lat-lat_grid, lon-lon_grid)
 				ranges.append((ui64, ui64 + (1<<(64-precision+1))))
-				
+
 				if lat + lat_grid < 0xFFFFFFFF:
 					ui64 = _uint64_interleave(lat+lat_grid, lon-lon_grid)
 					ranges.append((ui64, ui64 + (1<<(64-precision))))
@@ -372,7 +372,7 @@ def expand_uint64(ui64, precision=50):
 				if lat + lat_grid < 0xFFFFFFFF:
 					ui64 = _uint64_interleave(lat+lat_grid, lon)
 					ranges.append((ui64, ui64 + (1<<(64-precision+1))))
-					
+
 					ui64 = _uint64_interleave(lat+lat_grid, lon-lon_grid)
 					ranges.append((ui64, ui64 + (1<<(64-precision))))
 				ui64 = _uint64_interleave(lat, lon-lon_grid)
@@ -387,7 +387,7 @@ def expand_uint64(ui64, precision=50):
 				# lat,lon = (0, 1) and even precision
 				ui64 = _uint64_interleave(lat, lon+lon_grid)
 				ranges.append((ui64, ui64 + (1<<(64-precision+1))))
-				
+
 				if lat > 0:
 					ui64 = _uint64_interleave(lat-lat_grid, lon-lon_grid)
 					ranges.append((ui64, ui64 + (1<<(64-precision))))
@@ -400,7 +400,7 @@ def expand_uint64(ui64, precision=50):
 				if lat > 0:
 					ui64 = _uint64_interleave(lat-lat_grid, lon-lon_grid)
 					ranges.append((ui64, ui64 + (1<<(64-precision+1))))
-					
+
 					ui64 = _uint64_interleave(lat-lat_grid, lon+lon_grid)
 					ranges.append((ui64, ui64 + (1<<(64-precision))))
 				ui64 = _uint64_interleave(lat, lon+lon_grid)
@@ -414,7 +414,7 @@ def expand_uint64(ui64, precision=50):
 				# lat,lon = (0, 0) and even precision
 				ui64 = _uint64_interleave(lat, lon-lon_grid)
 				ranges.append((ui64, ui64 + (1<<(64-precision+1))))
-				
+
 				if lat > 0:
 					ui64 = _uint64_interleave(lat-lat_grid, lon-lon_grid)
 					ranges.append((ui64, ui64 + (1<<(64-precision))))
@@ -427,16 +427,16 @@ def expand_uint64(ui64, precision=50):
 				if lat > 0:
 					ui64 = _uint64_interleave(lat-lat_grid, lon)
 					ranges.append((ui64, ui64 + (1<<(64-precision+1))))
-					
+
 					ui64 = _uint64_interleave(lat-lat_grid, lon-lon_grid)
 					ranges.append((ui64, ui64 + (1<<(64-precision))))
 				ui64 = _uint64_interleave(lat, lon-lon_grid)
 				ranges.append((ui64, ui64 + (1<<(64-precision))))
 				ui64 = _uint64_interleave(lat+lat_grid, lon-lon_grid)
 				ranges.append((ui64, ui64 + (1<<(64-precision))))
-	
+
 	ranges.sort()
-	
+
 	# merge the conditions
 	shrink = []
 	prev = None
@@ -449,9 +449,9 @@ def expand_uint64(ui64, precision=50):
 				prev = (prev[0], i[1])
 		else:
 			prev = i
-	
+
 	shrink.append(prev)
-	
+
 	ranges = []
 	for i in shrink:
 		a,b=i
@@ -459,7 +459,7 @@ def expand_uint64(ui64, precision=50):
 			a = None # we can remove the condition because it is the lowest value
 		if b == 0x10000000000000000:
 			b = None # we can remove the condition because it is the highest value
-		
+
 		ranges.append((a,b))
-	
+
 	return ranges
