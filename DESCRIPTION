@@ -9,3 +9,5 @@ URL: https://github.com/MichaelChirico/geohash_tools
 YEAR: 2018
 COPYRIGHT HOLDER: Michael Chirico
 License: MIT + file LICENSE
+Imports: Rcpp (>= 1.0.0)
+LinkingTo: Rcpp

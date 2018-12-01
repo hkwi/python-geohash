@@ -18,6 +18,7 @@ typedef unsigned __int64 uint64_t;
 }
 #include "geohash.h"
 #include <Rcpp.h>
+using namespace Rcpp;
 
 static inline uint16_t interleave(uint8_t upper, uint8_t lower){
 	static const uint16_t map[256] = {
