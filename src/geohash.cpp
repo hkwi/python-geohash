@@ -236,9 +236,9 @@ int geohash_encode(double latitude, double longitude){
 	return geohash_encode_impl(latitude, longitude, hashcode);
 }
 
-// [[Rcpp::export]
+// [[Rcpp::export]]
 IntegerVector gh_encode(NumericVector latitude, NumericVector longitude) {
-  n = latitude.size();
+  int n = latitude.size();
   if (n != longitude.size()) stop("Inputs must be the same size.");
 
   IntegerVector gh_idx(n);
