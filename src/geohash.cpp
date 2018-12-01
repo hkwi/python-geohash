@@ -208,7 +208,7 @@ static int interleaved_to_geohashstr(uint16_t *interleaved, size_t length, char*
 /*
   latitude must be in [-90.0, 90.0) and longitude must be in [-180.0 180.0)
 */
-static int geohash_encode_impl(double latitude, double longitude, char* r, size_t capacity){
+static int geohash_encode_impl(double latitude, double longitude, char* r){
 	uint64_t lat64, lon64;
 	uint16_t interleaved[8];
 	char lr[27];
@@ -226,25 +226,28 @@ static int geohash_encode_impl(double latitude, double longitude, char* r, size_
 	}
 	lr[26] = '\0';
 
-	if(0<capacity){
-		if(capacity<27){
-			memcpy(r, (const char*)lr, capacity-1);
-			r[capacity-1]='\0';
-		}else{
-			memcpy(r, (const char*)lr, 27);
-		}
-	}
+	memcpy(r, (const char*)lr, 27);
 	return GEOHASH_OK;
 }
 
-int geohash_encode(double latitude, double longitude, char* r, size_t capacity){
-	return geohash_encode_impl(latitude, longitude, r, capacity);
+int geohash_encode(double latitude, double longitude){
+  char hashcode[28];
+
+	return geohash_encode_impl(latitude, longitude, hashcode);
 }
 
+// [[Rcpp::export]
 IntegerVector gh_encode(NumericVector latitude, NumericVector longitude) {
-  n_lat = latitude.size();
-  if (n_lat != longitude.size())
+  n = latitude.size();
+  if (n != longitude.size()) stop("Inputs must be the same size.");
 
+  IntegerVector gh_idx(n);
+
+  for(int i = 0; i < n; i++) {
+    gh_idx[i] = geohash_encode(latitude[i], longitude[i]);
+  }
+
+  return gh_idx;
 }
 
 /**
@@ -542,247 +545,3 @@ static int geo_neighbors_impl(char *hashcode, char* dst, size_t dst_length, int 
 int geo_neighbors(char *hashcode, char* dst, size_t dst_length, int *string_count){
 	return geo_neighbors_impl(hashcode, dst, dst_length, string_count);
 }
-
-#ifdef PYTHON_MODULE
-#include <Python.h>
-static void set_error(int status){
-	if(status==GEOHASH_NOTSUPPORTED)    PyErr_SetString(PyExc_EnvironmentError, "Unknown endian");
-	if(status==GEOHASH_INVALIDCODE)     PyErr_SetString(PyExc_ValueError, "geohash code is [0123456789bcdefghjkmnpqrstuvwxyz]+");
-	if(status==GEOHASH_INVALIDARGUMENT) PyErr_SetString(PyExc_ValueError, "Invalid argument");
-	if(status==GEOHASH_INTERNALERROR)   PyErr_SetString(PyExc_EnvironmentError, "Internal error");
-	if(status==GEOHASH_NOMEMORY)        PyErr_NoMemory();
-}
-
-static PyObject *py_geohash_encode(PyObject *self, PyObject *args) {
-	double latitude;
-	double longitude;
-	char hashcode[28];
-	int ret = GEOHASH_OK;
-
-	if(!PyArg_ParseTuple(args, "dd", &latitude, &longitude)) return NULL;
-
-	if((ret=geohash_encode_impl(latitude,longitude,hashcode,28))!=GEOHASH_OK){
-		set_error(ret);
-		return NULL;
-	}
-	return Py_BuildValue("s",hashcode);
-}
-
-static PyObject *py_geohash_decode(PyObject *self, PyObject *args) {
-	double latitude;
-	double longitude;
-	char *hashcode;
-	int codelen=0;
-	int ret = GEOHASH_OK;
-
-	if(!PyArg_ParseTuple(args, "s", &hashcode)) return NULL;
-
-	codelen = strlen(hashcode);
-	if((ret=geohash_decode_impl(hashcode,codelen,&latitude,&longitude))!=GEOHASH_OK){
-		set_error(ret);
-		return NULL;
-	}
-	return Py_BuildValue("(ddii)",latitude,longitude, codelen/2*5+codelen%2*2, codelen/2*5+codelen%2*3);
-}
-
-static PyObject *py_geohash_neighbors(PyObject *self, PyObject *args) {
-	PyObject *obj = NULL;
-	char *hashcode;
-	if(!PyArg_ParseTuple(args, "s", &hashcode)) return NULL;
-
-	size_t blen = strlen(hashcode)+1;
-	size_t buffer_sz = blen*8;
-	char *buffer = (char*)malloc(sizeof(char)*buffer_sz);
-	if(buffer==NULL){
-		set_error(GEOHASH_NOMEMORY);
-		return NULL;
-	}
-	int ret;
-	int string_count = 0;
-	if((ret = geo_neighbors_impl(hashcode, buffer, buffer_sz, &string_count)) != GEOHASH_OK){
-		set_error(ret);
-	}
-
-	if(string_count==0){
-		obj= Py_BuildValue("[]");
-	}else if(string_count==1){
-		obj= Py_BuildValue("[s]", buffer);
-	}else if(string_count==3){
-		obj= Py_BuildValue("[sss]", buffer, buffer+blen, buffer+blen*2);
-	}else if(string_count==5){
-		obj= Py_BuildValue("[sssss]", buffer, buffer+blen, buffer+blen*2, buffer+blen*3, buffer+blen*4);
-	}else if(string_count==8){
-		obj= Py_BuildValue("[ssssssss]", buffer, buffer+blen, buffer+blen*2, buffer+blen*3,
-			buffer+blen*4, buffer+blen*5, buffer+blen*6, buffer+blen*7);
-	}else{
-		set_error(GEOHASH_INTERNALERROR);
-	}
-	free(buffer);
-
-	return obj;
-}
-
-static PyObject *py_geoint_encode(PyObject *self, PyObject *args){
-	double latitude;
-	double longitude;
-	if(!PyArg_ParseTuple(args, "dd", &latitude, &longitude)) return NULL;
-
-	uint64_t lat64, lon64;
-	if(!double_to_i64(latitude/90.0, &lat64) || !double_to_i64(longitude/180.0, &lon64)){
-		return NULL;
-	}
-	uint16_t interleaved[8];
-	for(int i=0; i<8; i++){
-		interleaved[7-i] = interleave((uint8_t)(lon64>>(i*8)), (uint8_t)(lat64>>(i*8)));
-	}
-
-	PyObject *ret = NULL;
-#if UINT64_MAX <= ULLONG_MAX
-	ret = PyTuple_New(2);
-	unsigned PY_LONG_LONG li;
-	li = ((unsigned PY_LONG_LONG)interleaved[0]<<48) + ((unsigned PY_LONG_LONG)interleaved[1]<<32) + ((unsigned PY_LONG_LONG)interleaved[2]<<16) + (unsigned PY_LONG_LONG)interleaved[3];
-	PyTuple_SET_ITEM(ret, 0, PyLong_FromUnsignedLongLong(li));
-	li = ((unsigned PY_LONG_LONG)interleaved[4]<<48) + ((unsigned PY_LONG_LONG)interleaved[5]<<32) + ((unsigned PY_LONG_LONG)interleaved[6]<<16) + (unsigned PY_LONG_LONG)interleaved[7];
-	PyTuple_SET_ITEM(ret, 1, PyLong_FromUnsignedLongLong(li));
-#elif UINT32_MAX <= ULLONG_MAX
-	ret = PyTuple_New(4);
-	unsigned PY_LONG_LONG li;
-	li = ((unsigned PY_LONG_LONG)interleaved[0]<<16) + (unsigned PY_LONG_LONG)interleaved[1];
-	PyTuple_SET_ITEM(ret, 0, PyLong_FromUnsignedLongLong(li));
-	li = ((unsigned PY_LONG_LONG)interleaved[1]<<16) + (unsigned PY_LONG_LONG)interleaved[3];
-	PyTuple_SET_ITEM(ret, 1, PyLong_FromUnsignedLongLong(li));
-	li = ((unsigned PY_LONG_LONG)interleaved[2]<<16) + (unsigned PY_LONG_LONG)interleaved[5];
-	PyTuple_SET_ITEM(ret, 2, PyLong_FromUnsignedLongLong(li));
-	li = ((unsigned PY_LONG_LONG)interleaved[3]<<16) + (unsigned PY_LONG_LONG)interleaved[7];
-	PyTuple_SET_ITEM(ret, 3, PyLong_FromUnsignedLongLong(li));
-#elif UINT16_MAX <= ULLONG_MAX
-	ret = PyTuple_New(8);
-	PyTuple_SET_ITEM(ret, 0, PyLong_FromUnsignedLongLong((unsigned PY_LONG_LONG)interleaved[0]));
-	PyTuple_SET_ITEM(ret, 1, PyLong_FromUnsignedLongLong((unsigned PY_LONG_LONG)interleaved[1]));
-	PyTuple_SET_ITEM(ret, 2, PyLong_FromUnsignedLongLong((unsigned PY_LONG_LONG)interleaved[2]));
-	PyTuple_SET_ITEM(ret, 3, PyLong_FromUnsignedLongLong((unsigned PY_LONG_LONG)interleaved[3]));
-	PyTuple_SET_ITEM(ret, 4, PyLong_FromUnsignedLongLong((unsigned PY_LONG_LONG)interleaved[4]));
-	PyTuple_SET_ITEM(ret, 5, PyLong_FromUnsignedLongLong((unsigned PY_LONG_LONG)interleaved[5]));
-	PyTuple_SET_ITEM(ret, 6, PyLong_FromUnsignedLongLong((unsigned PY_LONG_LONG)interleaved[6]));
-	PyTuple_SET_ITEM(ret, 7, PyLong_FromUnsignedLongLong((unsigned PY_LONG_LONG)interleaved[7]));
-#else
-#error "This platform not supported"
-#endif // UINT64_MAX <= ULLONG_MAX
-	return ret;
-}
-
-static PyObject *py_geoint_decode(PyObject *self, PyObject *args){
-	uint16_t interleaved[8];
-#if PY_MAJOR_VERSION >= 3 || (PY_MAJOR_VERSION >=2 && PY_MINOR_VERSION >= 5)
-	Py_ssize_t sz = PyTuple_GET_SIZE(args);
-#else
-	int sz = PyTuple_GET_SIZE(args);
-#endif
-	if(sz==2){
-		unsigned PY_LONG_LONG lo;
-		lo = PyLong_AsUnsignedLongLong(PyTuple_GET_ITEM(args,0));
-		interleaved[0] = (uint16_t)(lo>>48);
-		interleaved[1] = (uint16_t)(lo>>32);
-		interleaved[2] = (uint16_t)(lo>>16);
-		interleaved[3] = (uint16_t)lo;
-		lo = PyLong_AsUnsignedLongLong(PyTuple_GET_ITEM(args,1));
-		interleaved[4] = (uint16_t)(lo>>48);
-		interleaved[5] = (uint16_t)(lo>>32);
-		interleaved[6] = (uint16_t)(lo>>16);
-		interleaved[7] = (uint16_t)lo;
-	}else if(sz==4){
-		unsigned PY_LONG_LONG lo;
-		lo = PyLong_AsUnsignedLongLong(PyTuple_GET_ITEM(args,0));
-		interleaved[0] = (uint16_t)(lo>>16);
-		interleaved[1] = (uint16_t)lo;
-		lo = PyLong_AsUnsignedLongLong(PyTuple_GET_ITEM(args,1));
-		interleaved[2] = (uint16_t)(lo>>16);
-		interleaved[3] = (uint16_t)lo;
-		lo = PyLong_AsUnsignedLongLong(PyTuple_GET_ITEM(args,2));
-		interleaved[4] = (uint16_t)(lo>>16);
-		interleaved[5] = (uint16_t)lo;
-		lo = PyLong_AsUnsignedLongLong(PyTuple_GET_ITEM(args,3));
-		interleaved[6] = (uint16_t)(lo>>16);
-		interleaved[7] = (uint16_t)lo;
-	}else if(sz==8){
-		interleaved[0] = (uint16_t)PyLong_AsUnsignedLongLong(PyTuple_GET_ITEM(args,0));
-		interleaved[1] = (uint16_t)PyLong_AsUnsignedLongLong(PyTuple_GET_ITEM(args,1));
-		interleaved[2] = (uint16_t)PyLong_AsUnsignedLongLong(PyTuple_GET_ITEM(args,2));
-		interleaved[3] = (uint16_t)PyLong_AsUnsignedLongLong(PyTuple_GET_ITEM(args,3));
-		interleaved[4] = (uint16_t)PyLong_AsUnsignedLongLong(PyTuple_GET_ITEM(args,4));
-		interleaved[5] = (uint16_t)PyLong_AsUnsignedLongLong(PyTuple_GET_ITEM(args,5));
-		interleaved[6] = (uint16_t)PyLong_AsUnsignedLongLong(PyTuple_GET_ITEM(args,6));
-		interleaved[7] = (uint16_t)PyLong_AsUnsignedLongLong(PyTuple_GET_ITEM(args,7));
-	}else{
-		PyErr_SetString(PyExc_ValueError, "Argument must be 2, 4 or 8 integers.");
-		return NULL;
-	}
-
-	uint64_t lat64=0;
-	uint64_t lon64=0;
-	for(int i=0; i<8; i++){
-		uint8_t upper, lower;
-		deinterleave(interleaved[i], &upper, &lower);
-		lon64 = (lon64<<8)+upper;
-		lat64 = (lat64<<8)+lower;
-	}
-	double tlat, tlon;
-	i64_to_double(lat64, &tlat);
-	i64_to_double(lon64, &tlon);
-
-	return Py_BuildValue("(dd)", tlat*90.0, tlon*180.0);
-}
-
-static PyMethodDef GeohashMethods[] = {
-	{"encode", py_geohash_encode, METH_VARARGS, "geohash encoding."},
-	{"decode", py_geohash_decode, METH_VARARGS, "geohash decoding."},
-	{"neighbors", py_geohash_neighbors, METH_VARARGS, "geohash neighbor codes",},
-	{"encode_int", py_geoint_encode, METH_VARARGS, "encode geometric coordinates into 128bit interleaved integer(divided into some integers)"},
-	{"decode_int", py_geoint_decode, METH_VARARGS, "decode 128bit interleaved integer(divided into some integers) into geometric coordinates"},
-	{NULL, NULL, 0, NULL}
-};
-
-#ifdef Py_InitModule
-PyMODINIT_FUNC init_geohash(void){
-	PyObject *mod = Py_InitModule("_geohash", GeohashMethods);
-#if UINT64_MAX <= ULLONG_MAX
-	PyModule_AddIntConstant(mod, "intunit", 64);
-#elif UINT32_MAX <= ULLONG_MAX
-	PyModule_AddIntConstant(mod, "intunit", 32);
-#elif UINT16_MAX <= ULLONG_MAX
-	PyModule_AddIntConstant(mod, "intunit", 16);
-#else
-#error "This platform not supported"
-#endif // UINT64_MAX <= ULLONG_MAX
-	return (void)mod;
-}
-#else
-PyDoc_STRVAR(module_doc, "geohash speedups");
-
-static struct PyModuleDef geohash_moduledef = {
-	PyModuleDef_HEAD_INIT,
-	"_geohash",
-	module_doc,
-	-1,
-	GeohashMethods,
-	NULL,
-	NULL,
-	NULL,
-	NULL
-};
-PyMODINIT_FUNC PyInit__geohash(void){
-	PyObject *mod = PyModule_Create(&geohash_moduledef);
-#if UINT64_MAX <= ULLONG_MAX
-	PyModule_AddIntConstant(mod, "intunit", 64);
-#elif UINT32_MAX <= ULLONG_MAX
-	PyModule_AddIntConstant(mod, "intunit", 32);
-#elif UINT16_MAX <= ULLONG_MAX
-	PyModule_AddIntConstant(mod, "intunit", 16);
-#else
-#error "This platform not supported"
-#endif // UINT64_MAX <= ULLONG_MAX
-	return mod;
-};
-#endif /* Py_InitModule */
-
-#endif /* PYTHON_MODULE */

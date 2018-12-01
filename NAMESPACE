@@ -1,1 +1,2 @@
 useDynLib(geohash_tools, .registration = TRUE)
+importFrom(Rcpp, sourceCpp)
