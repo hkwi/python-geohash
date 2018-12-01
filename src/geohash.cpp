@@ -17,51 +17,52 @@ typedef unsigned __int64 uint64_t;
 
 }
 #include "geohash.h"
+#include <Rcpp.h>
 
 static inline uint16_t interleave(uint8_t upper, uint8_t lower){
 	static const uint16_t map[256] = {
-		0x0000, 0x0001, 0x0004, 0x0005, 0x0010, 0x0011, 
-		0x0014, 0x0015, 0x0040, 0x0041, 0x0044, 0x0045, 
-		0x0050, 0x0051, 0x0054, 0x0055, 0x0100, 0x0101, 
-		0x0104, 0x0105, 0x0110, 0x0111, 0x0114, 0x0115, 
-		0x0140, 0x0141, 0x0144, 0x0145, 0x0150, 0x0151, 
-		0x0154, 0x0155, 0x0400, 0x0401, 0x0404, 0x0405, 
-		0x0410, 0x0411, 0x0414, 0x0415, 0x0440, 0x0441, 
-		0x0444, 0x0445, 0x0450, 0x0451, 0x0454, 0x0455, 
-		0x0500, 0x0501, 0x0504, 0x0505, 0x0510, 0x0511, 
-		0x0514, 0x0515, 0x0540, 0x0541, 0x0544, 0x0545, 
-		0x0550, 0x0551, 0x0554, 0x0555, 0x1000, 0x1001, 
-		0x1004, 0x1005, 0x1010, 0x1011, 0x1014, 0x1015, 
-		0x1040, 0x1041, 0x1044, 0x1045, 0x1050, 0x1051, 
-		0x1054, 0x1055, 0x1100, 0x1101, 0x1104, 0x1105, 
-		0x1110, 0x1111, 0x1114, 0x1115, 0x1140, 0x1141, 
-		0x1144, 0x1145, 0x1150, 0x1151, 0x1154, 0x1155, 
-		0x1400, 0x1401, 0x1404, 0x1405, 0x1410, 0x1411, 
-		0x1414, 0x1415, 0x1440, 0x1441, 0x1444, 0x1445, 
-		0x1450, 0x1451, 0x1454, 0x1455, 0x1500, 0x1501, 
-		0x1504, 0x1505, 0x1510, 0x1511, 0x1514, 0x1515, 
-		0x1540, 0x1541, 0x1544, 0x1545, 0x1550, 0x1551, 
-		0x1554, 0x1555, 0x4000, 0x4001, 0x4004, 0x4005, 
-		0x4010, 0x4011, 0x4014, 0x4015, 0x4040, 0x4041, 
-		0x4044, 0x4045, 0x4050, 0x4051, 0x4054, 0x4055, 
-		0x4100, 0x4101, 0x4104, 0x4105, 0x4110, 0x4111, 
-		0x4114, 0x4115, 0x4140, 0x4141, 0x4144, 0x4145, 
-		0x4150, 0x4151, 0x4154, 0x4155, 0x4400, 0x4401, 
-		0x4404, 0x4405, 0x4410, 0x4411, 0x4414, 0x4415, 
-		0x4440, 0x4441, 0x4444, 0x4445, 0x4450, 0x4451, 
-		0x4454, 0x4455, 0x4500, 0x4501, 0x4504, 0x4505, 
-		0x4510, 0x4511, 0x4514, 0x4515, 0x4540, 0x4541, 
-		0x4544, 0x4545, 0x4550, 0x4551, 0x4554, 0x4555, 
-		0x5000, 0x5001, 0x5004, 0x5005, 0x5010, 0x5011, 
-		0x5014, 0x5015, 0x5040, 0x5041, 0x5044, 0x5045, 
-		0x5050, 0x5051, 0x5054, 0x5055, 0x5100, 0x5101, 
-		0x5104, 0x5105, 0x5110, 0x5111, 0x5114, 0x5115, 
-		0x5140, 0x5141, 0x5144, 0x5145, 0x5150, 0x5151, 
-		0x5154, 0x5155, 0x5400, 0x5401, 0x5404, 0x5405, 
-		0x5410, 0x5411, 0x5414, 0x5415, 0x5440, 0x5441, 
-		0x5444, 0x5445, 0x5450, 0x5451, 0x5454, 0x5455, 
-		0x5500, 0x5501, 0x5504, 0x5505, 0x5510, 0x5511, 
-		0x5514, 0x5515, 0x5540, 0x5541, 0x5544, 0x5545, 
+		0x0000, 0x0001, 0x0004, 0x0005, 0x0010, 0x0011,
+		0x0014, 0x0015, 0x0040, 0x0041, 0x0044, 0x0045,
+		0x0050, 0x0051, 0x0054, 0x0055, 0x0100, 0x0101,
+		0x0104, 0x0105, 0x0110, 0x0111, 0x0114, 0x0115,
+		0x0140, 0x0141, 0x0144, 0x0145, 0x0150, 0x0151,
+		0x0154, 0x0155, 0x0400, 0x0401, 0x0404, 0x0405,
+		0x0410, 0x0411, 0x0414, 0x0415, 0x0440, 0x0441,
+		0x0444, 0x0445, 0x0450, 0x0451, 0x0454, 0x0455,
+		0x0500, 0x0501, 0x0504, 0x0505, 0x0510, 0x0511,
+		0x0514, 0x0515, 0x0540, 0x0541, 0x0544, 0x0545,
+		0x0550, 0x0551, 0x0554, 0x0555, 0x1000, 0x1001,
+		0x1004, 0x1005, 0x1010, 0x1011, 0x1014, 0x1015,
+		0x1040, 0x1041, 0x1044, 0x1045, 0x1050, 0x1051,
+		0x1054, 0x1055, 0x1100, 0x1101, 0x1104, 0x1105,
+		0x1110, 0x1111, 0x1114, 0x1115, 0x1140, 0x1141,
+		0x1144, 0x1145, 0x1150, 0x1151, 0x1154, 0x1155,
+		0x1400, 0x1401, 0x1404, 0x1405, 0x1410, 0x1411,
+		0x1414, 0x1415, 0x1440, 0x1441, 0x1444, 0x1445,
+		0x1450, 0x1451, 0x1454, 0x1455, 0x1500, 0x1501,
+		0x1504, 0x1505, 0x1510, 0x1511, 0x1514, 0x1515,
+		0x1540, 0x1541, 0x1544, 0x1545, 0x1550, 0x1551,
+		0x1554, 0x1555, 0x4000, 0x4001, 0x4004, 0x4005,
+		0x4010, 0x4011, 0x4014, 0x4015, 0x4040, 0x4041,
+		0x4044, 0x4045, 0x4050, 0x4051, 0x4054, 0x4055,
+		0x4100, 0x4101, 0x4104, 0x4105, 0x4110, 0x4111,
+		0x4114, 0x4115, 0x4140, 0x4141, 0x4144, 0x4145,
+		0x4150, 0x4151, 0x4154, 0x4155, 0x4400, 0x4401,
+		0x4404, 0x4405, 0x4410, 0x4411, 0x4414, 0x4415,
+		0x4440, 0x4441, 0x4444, 0x4445, 0x4450, 0x4451,
+		0x4454, 0x4455, 0x4500, 0x4501, 0x4504, 0x4505,
+		0x4510, 0x4511, 0x4514, 0x4515, 0x4540, 0x4541,
+		0x4544, 0x4545, 0x4550, 0x4551, 0x4554, 0x4555,
+		0x5000, 0x5001, 0x5004, 0x5005, 0x5010, 0x5011,
+		0x5014, 0x5015, 0x5040, 0x5041, 0x5044, 0x5045,
+		0x5050, 0x5051, 0x5054, 0x5055, 0x5100, 0x5101,
+		0x5104, 0x5105, 0x5110, 0x5111, 0x5114, 0x5115,
+		0x5140, 0x5141, 0x5144, 0x5145, 0x5150, 0x5151,
+		0x5154, 0x5155, 0x5400, 0x5401, 0x5404, 0x5405,
+		0x5410, 0x5411, 0x5414, 0x5415, 0x5440, 0x5441,
+		0x5444, 0x5445, 0x5450, 0x5451, 0x5454, 0x5455,
+		0x5500, 0x5501, 0x5504, 0x5505, 0x5510, 0x5511,
+		0x5514, 0x5515, 0x5540, 0x5541, 0x5544, 0x5545,
 		0x5550, 0x5551, 0x5554, 0x5555
 	};
 	return (map[upper]<<1)+map[lower];
@@ -96,7 +97,7 @@ static inline int double_to_i64(double in, uint64_t *out){
 	}else if(exp==0x7FF){
 		return 0;
 	}
-	
+
 	x.i64 &= UINT64_C(0x000FFFFFFFFFFFFF);
 	x.i64 |= UINT64_C(0x0010000000000000);
 	int shift = exp - 0x3FF + 11;
@@ -111,7 +112,7 @@ static inline int double_to_i64(double in, uint64_t *out){
 		x.i64 += UINT64_C(0x8000000000000000);
 	}
 	*out = x.i64;
-	
+
 	return !0;
 }
 
@@ -156,7 +157,7 @@ static int interleaved_to_geohashstr(uint16_t *interleaved, size_t length, char*
 	if(dst_length*5 < length*16){
 		return GEOHASH_INTERNALERROR;
 	}
-	
+
 	unsigned char *w = (unsigned char*)dst;
 	uint16_t *i = interleaved;
 	for(unsigned int j=0; j<dst_length/16; j++){
@@ -210,20 +211,20 @@ static int geohash_encode_impl(double latitude, double longitude, char* r, size_
 	uint64_t lat64, lon64;
 	uint16_t interleaved[8];
 	char lr[27];
-	
+
 	if(!double_to_i64(latitude/90.0, &lat64) || !double_to_i64(longitude/180.0, &lon64)){
 		return GEOHASH_INVALIDARGUMENT;
 	}
 	for(int i=0; i<8; i++){
 		interleaved[7-i] = interleave((uint8_t)(lon64>>(i*8)), (uint8_t)(lat64>>(i*8)));
 	}
-	
+
 	int ret = GEOHASH_OK;
 	if((ret=interleaved_to_geohashstr(interleaved, 8, lr, 26)) != GEOHASH_OK){
 		return ret;
 	}
 	lr[26] = '\0';
-	
+
 	if(0<capacity){
 		if(capacity<27){
 			memcpy(r, (const char*)lr, capacity-1);
@@ -234,8 +235,15 @@ static int geohash_encode_impl(double latitude, double longitude, char* r, size_
 	}
 	return GEOHASH_OK;
 }
+
 int geohash_encode(double latitude, double longitude, char* r, size_t capacity){
 	return geohash_encode_impl(latitude, longitude, r, capacity);
+}
+
+IntegerVector gh_encode(NumericVector latitude, NumericVector longitude) {
+  n_lat = latitude.size();
+  if (n_lat != longitude.size())
+
 }
 
 /**
@@ -274,7 +282,7 @@ static int geohashstr_to_interleaved(char* r, size_t length, uint16_t *interleav
 	for(unsigned int j=0; j<dst_count; j++){
 		interleaved[j]=0;
 	}
-	
+
 	uint16_t *i = interleaved;
 	unsigned char *c = (unsigned char*)r;
 	for(unsigned int j=0; j<length/16; j++){
@@ -343,15 +351,15 @@ static int geohash_decode_impl(char* r, size_t length, double *latitude, double 
 	if(intr_free){
 		free(interleaved);
 	}
-	
+
 	double t;
-	
+
 	i64_to_double(lat64, &t);
 	*latitude = t*90.0;
-	
+
 	i64_to_double(lon64, &t);
 	*longitude = t*180.0;
-	
+
 	return GEOHASH_OK;
 }
 int geohash_decode(char* r, size_t length, double *latitude, double *longitude){
@@ -424,10 +432,10 @@ static int neighbors(uint16_t *interleaved, size_t bitlength, uint16_t* dst, siz
 	}
 	uint8_t *lat_8s = latlons;
 	uint8_t *lon_8s = latlons + interleaved_length*3;
-	
+
 	unsigned int lat_len = bitlength/2;
 	unsigned int lon_len = bitlength/2+bitlength%2;
-	
+
 	for(unsigned int i=0; i<interleaved_length; i++){
 		deinterleave(interleaved[i], lon_8s+i, lat_8s+i);
 		lat_8s[i+interleaved_length*2] = lat_8s[i+interleaved_length] = lat_8s[i];
@@ -435,7 +443,7 @@ static int neighbors(uint16_t *interleaved, size_t bitlength, uint16_t* dst, siz
 	}
 	uint8_t* lats[3] = {lat_8s, lat_8s+interleaved_length, lat_8s+interleaved_length*2};
 	uint8_t* lons[3] = {lon_8s, lon_8s+interleaved_length, lon_8s+interleaved_length*2};
-	
+
 	if(uint8s_plus_minus(lats[0], lats[1], lat_len, 0)){
 		if((lats[1][0]&0x80) && !(lats[0][0]&0x80)){
 			for(unsigned int i=0; i<interleaved_length; i++){
@@ -452,7 +460,7 @@ static int neighbors(uint16_t *interleaved, size_t bitlength, uint16_t* dst, siz
 	}
 	uint8s_plus_minus(lons[0], lons[1], lon_len, 0);
 	uint8s_plus_minus(lons[0], lons[2], lon_len, 1);
-	
+
 	size_t neighbour_count = 0;
 	for(unsigned int i=0;i<3;i++){
 		if(i>0 && uint8s_cmp(lats[i-1], lats[i], lat_len)==0){
@@ -465,7 +473,7 @@ static int neighbors(uint16_t *interleaved, size_t bitlength, uint16_t* dst, siz
 			if(i==0 && j==0){
 				continue;
 			}
-			
+
 			for(unsigned int k=0; k<interleaved_length; k++){
 				dst[interleaved_length*neighbour_count+k] = interleave(lons[j][k], lats[i][k]);
 			}
@@ -486,7 +494,7 @@ static int geo_neighbors_impl(char *hashcode, char* dst, size_t dst_length, int 
 	while(interleaved_length*16 < hashcode_length*5){
 		interleaved_length++;
 	}
-	
+
 	uint16_t *interleaved = (uint16_t*)malloc(sizeof(uint16_t) * interleaved_length * 9);
 	if(interleaved==NULL){
 		return GEOHASH_NOMEMORY;
@@ -495,14 +503,14 @@ static int geo_neighbors_impl(char *hashcode, char* dst, size_t dst_length, int 
 		free(interleaved);
 		return ret;
 	}
-	
+
 	size_t dst_count = 0;
 	uint16_t *intr_dst = interleaved + interleaved_length;
 	if((ret = neighbors(interleaved, hashcode_length*5, intr_dst, interleaved_length*8, &dst_count) != GEOHASH_OK)){
 		free(interleaved);
 		return ret;
 	}
-	
+
 	size_t blen = 0;
 	while(blen*5 < interleaved_length*16){ blen++; }
 	blen++; // for string NULL terminator
@@ -511,7 +519,7 @@ static int geo_neighbors_impl(char *hashcode, char* dst, size_t dst_length, int 
 		free(interleaved);
 		return GEOHASH_NOMEMORY;
 	}
-	
+
 	for(unsigned int i=0; i<dst_count; i++){
 		if((ret = interleaved_to_geohashstr(intr_dst+i*interleaved_length, interleaved_length, buffer, blen)) != GEOHASH_OK){
 			free(interleaved);
@@ -527,7 +535,7 @@ static int geo_neighbors_impl(char *hashcode, char* dst, size_t dst_length, int 
 	if(string_count){
 		*string_count = dst_count;
 	}
-	
+
 	return GEOHASH_OK;
 }
 int geo_neighbors(char *hashcode, char* dst, size_t dst_length, int *string_count){
@@ -549,9 +557,9 @@ static PyObject *py_geohash_encode(PyObject *self, PyObject *args) {
 	double longitude;
 	char hashcode[28];
 	int ret = GEOHASH_OK;
-	
+
 	if(!PyArg_ParseTuple(args, "dd", &latitude, &longitude)) return NULL;
-	
+
 	if((ret=geohash_encode_impl(latitude,longitude,hashcode,28))!=GEOHASH_OK){
 		set_error(ret);
 		return NULL;
@@ -565,9 +573,9 @@ static PyObject *py_geohash_decode(PyObject *self, PyObject *args) {
 	char *hashcode;
 	int codelen=0;
 	int ret = GEOHASH_OK;
-	
+
 	if(!PyArg_ParseTuple(args, "s", &hashcode)) return NULL;
-	
+
 	codelen = strlen(hashcode);
 	if((ret=geohash_decode_impl(hashcode,codelen,&latitude,&longitude))!=GEOHASH_OK){
 		set_error(ret);
@@ -593,7 +601,7 @@ static PyObject *py_geohash_neighbors(PyObject *self, PyObject *args) {
 	if((ret = geo_neighbors_impl(hashcode, buffer, buffer_sz, &string_count)) != GEOHASH_OK){
 		set_error(ret);
 	}
-	
+
 	if(string_count==0){
 		obj= Py_BuildValue("[]");
 	}else if(string_count==1){
@@ -609,7 +617,7 @@ static PyObject *py_geohash_neighbors(PyObject *self, PyObject *args) {
 		set_error(GEOHASH_INTERNALERROR);
 	}
 	free(buffer);
-	
+
 	return obj;
 }
 
@@ -617,7 +625,7 @@ static PyObject *py_geoint_encode(PyObject *self, PyObject *args){
 	double latitude;
 	double longitude;
 	if(!PyArg_ParseTuple(args, "dd", &latitude, &longitude)) return NULL;
-	
+
 	uint64_t lat64, lon64;
 	if(!double_to_i64(latitude/90.0, &lat64) || !double_to_i64(longitude/180.0, &lon64)){
 		return NULL;
@@ -708,7 +716,7 @@ static PyObject *py_geoint_decode(PyObject *self, PyObject *args){
 		PyErr_SetString(PyExc_ValueError, "Argument must be 2, 4 or 8 integers.");
 		return NULL;
 	}
-	
+
 	uint64_t lat64=0;
 	uint64_t lon64=0;
 	for(int i=0; i<8; i++){
@@ -720,7 +728,7 @@ static PyObject *py_geoint_decode(PyObject *self, PyObject *args){
 	double tlat, tlon;
 	i64_to_double(lat64, &tlat);
 	i64_to_double(lon64, &tlon);
-	
+
 	return Py_BuildValue("(dd)", tlat*90.0, tlon*180.0);
 }
 
