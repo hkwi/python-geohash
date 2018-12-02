@@ -235,7 +235,8 @@ static int geohash_encode_impl(double latitude, double longitude, char* r){
 std::string geohash_encode(double latitude, double longitude, int precision){
   char hashcode[28];
 
-  geohash_encode_impl(latitude, longitude, hashcode);
+  int ret = geohash_encode_impl(latitude, longitude, hashcode);
+  if (ret != GEOHASH_OK) stop("Failure %d", ret);
 
   std::string gh_string;
 
