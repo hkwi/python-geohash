@@ -230,24 +230,32 @@ static int geohash_encode_impl(double latitude, double longitude, char* r){
 	return GEOHASH_OK;
 }
 
-int geohash_encode(double latitude, double longitude){
+std::string geohash_encode(double latitude, double longitude, int precision){
   char hashcode[28];
 
-	return geohash_encode_impl(latitude, longitude, hashcode);
+  geohash_encode_impl(latitude, longitude, hashcode);
+
+  std::string gh_string;
+
+  for (int i = 0; i < precision; i++) {
+    gh_string[i] = hashcode[i];
+  }
+
+	return gh_string;
 }
 
 // [[Rcpp::export]]
-IntegerVector gh_encode(NumericVector latitude, NumericVector longitude) {
+StringVector gh_encode(NumericVector latitude, NumericVector longitude, int precision = 6) {
   int n = latitude.size();
   if (n != longitude.size()) stop("Inputs must be the same size.");
 
-  IntegerVector gh_idx(n);
+  StringVector ghs(n);
 
   for(int i = 0; i < n; i++) {
-    gh_idx[i] = geohash_encode(latitude[i], longitude[i]);
+    ghs[i] = geohash_encode(latitude[i], longitude[i], precision);
   }
 
-  return gh_idx;
+  return ghs;
 }
 
 /**
