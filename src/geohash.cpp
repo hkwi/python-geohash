@@ -459,11 +459,13 @@ static int geohash_decode_impl(char* r, size_t length, double *latitude, double 
 	double t;
 
 	i64_to_double(lat64, &t);
-	*delta_latitude = 90/(1 << (length/2*5 + length%2*2));
+	// alternately gain 2 or 3 powers of 2 each zoom level;
+	//   NB: integer division is safe since numerator always integral
+	*delta_latitude = 45.0/(double) (1 << ((5*length - (length % 2))/2 - 1));
 	*latitude = t*90.0 + *delta_latitude * (double) ky;
 
 	i64_to_double(lon64, &t);
-	*delta_longitude = 180/(1 << (length/2*5 + length%2*3));
+	*delta_longitude = 45.0/(double) (1 << ((5*length + (length % 2))/2 - 2));
 	*longitude = t*180.0 + *delta_longitude * (double) kx;
 
 	return GEOHASH_OK;
@@ -474,7 +476,7 @@ int geohash_decode(char* r, size_t length, double *latitude, double *longitude, 
 }
 
 // [[Rcpp::export]]
-List gh_decode_(StringVector ghs, int coord_loc, bool include_delta) {
+List gh_decode_(StringVector ghs, bool include_delta, int coord_loc) {
   int n = ghs.size();
 
   int adj_lat;

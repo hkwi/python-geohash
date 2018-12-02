@@ -5,7 +5,7 @@ gh_encode_ <- function(latitude, longitude, precision = 6L) {
     .Call(`_geohashTools_gh_encode_`, latitude, longitude, precision)
 }
 
-gh_decode_ <- function(ghs, coord_loc, include_delta) {
-    .Call(`_geohashTools_gh_decode_`, ghs, coord_loc, include_delta)
+gh_decode_ <- function(ghs, include_delta, coord_loc) {
+    .Call(`_geohashTools_gh_decode_`, ghs, include_delta, coord_loc)
 }
 

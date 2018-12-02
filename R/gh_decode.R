@@ -1,6 +1,6 @@
 # wrapper to C++ call to do some argument handling in R
 
-gh_decode = function(geohashes, coord_loc = 'c', include_delta = FALSE) {
+gh_decode = function(geohashes, include_delta = FALSE, coord_loc = 'c') {
   coord_loc = switch(
     tolower(coord_loc),
     'centroid' = , 'c' = 0L,
@@ -15,5 +15,5 @@ gh_decode = function(geohashes, coord_loc = 'c', include_delta = FALSE) {
     stop('Unrecognized coordinate location; please use ',
          "'c' for centroid or a cardinal direction; see ?gh_decode")
   )
-  gh_decode_(geohashes, coord_loc, include_delta)
+  gh_decode_(geohashes, include_delta, coord_loc)
 }
