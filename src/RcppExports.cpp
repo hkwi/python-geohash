@@ -5,23 +5,29 @@
 
 using namespace Rcpp;
 
-// rcpp_hello_world
-List rcpp_hello_world();
-RcppExport SEXP _geohash_tools_rcpp_hello_world() {
+// gh_encode_
+StringVector gh_encode_(NumericVector latitude, NumericVector longitude, int precision);
+RcppExport SEXP _geohash_tools_gh_encode_(SEXP latitudeSEXP, SEXP longitudeSEXP, SEXP precisionSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    rcpp_result_gen = Rcpp::wrap(rcpp_hello_world());
+    Rcpp::traits::input_parameter< NumericVector >::type latitude(latitudeSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type longitude(longitudeSEXP);
+    Rcpp::traits::input_parameter< int >::type precision(precisionSEXP);
+    rcpp_result_gen = Rcpp::wrap(gh_encode_(latitude, longitude, precision));
     return rcpp_result_gen;
 END_RCPP
 }
 
+RcppExport SEXP _geohash_tools_gh_encode(SEXP, SEXP, SEXP);
+
 static const R_CallMethodDef CallEntries[] = {
-    {"_anRpackage_rcpp_hello_world", (DL_FUNC) &_anRpackage_rcpp_hello_world, 0},
+    {"_geohash_tools_gh_encode_", (DL_FUNC) &_geohash_tools_gh_encode_, 3},
+    {"_geohash_tools_gh_encode", (DL_FUNC) &_geohash_tools_gh_encode, 3},
     {NULL, NULL, 0}
 };
 
-RcppExport void R_init_anRpackage(DllInfo *dll) {
+RcppExport void R_init_geohash_tools(DllInfo *dll) {
     R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
     R_useDynamicSymbols(dll, FALSE);
 }

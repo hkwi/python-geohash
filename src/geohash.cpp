@@ -309,7 +309,7 @@ std::string geohash_encode1(double latitude, double longitude) {
 }
 
 // [[Rcpp::export]]
-StringVector gh_encode(NumericVector latitude, NumericVector longitude, int precision = 6) {
+StringVector gh_encode_(NumericVector latitude, NumericVector longitude, int precision = 6) {
   int n = latitude.size();
   if (n != longitude.size()) stop("Inputs must be the same size.");
 
