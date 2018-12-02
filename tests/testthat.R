@@ -1,5 +1,5 @@
 library(testthat)
-library(geohash_tools)
+library(geohashTools)
 
-test_check("geohash_tools")
+test_check("geohashTools")
 

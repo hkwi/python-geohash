@@ -19,11 +19,8 @@ BEGIN_RCPP
 END_RCPP
 }
 
-RcppExport SEXP _geohash_tools_gh_encode_(SEXP, SEXP, SEXP);
-
 static const R_CallMethodDef CallEntries[] = {
     {"_geohashTools_gh_encode_", (DL_FUNC) &_geohashTools_gh_encode_, 3},
-    {"_geohash_tools_gh_encode_", (DL_FUNC) &_geohash_tools_gh_encode_, 3},
     {NULL, NULL, 0}
 };
 

@@ -1,4 +1,4 @@
-useDynLib(geohash_tools, .registration = TRUE)
+useDynLib(geohashTools, .registration = TRUE)
 importFrom(Rcpp, sourceCpp)
 
 export(gh_encode)

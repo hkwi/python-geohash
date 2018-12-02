@@ -4,3 +4,8 @@
 .Ruserdata
 
 *.tar.gz
+
+ #objects, shared objects, DLLs
+*.o
+*.so
+*.dll
