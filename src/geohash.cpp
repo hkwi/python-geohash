@@ -423,9 +423,6 @@ static int geohashstr_to_interleaved(char* r, size_t length, uint16_t *interleav
 	return GEOHASH_OK;
 }
 
-/*
-   (latitude, longitude) will be that of south west point.
-*/
 static int geohash_decode_impl(char* r, size_t length, double *latitude, double *longitude, double *delta_latitude, double *delta_longitude, int ky, int kx){
 	uint16_t intr_auto[8];
 	uint16_t *interleaved = intr_auto;
@@ -542,7 +539,12 @@ List gh_decode_(StringVector ghs, bool include_delta, int coord_loc) {
       }
     } else {
       int precision = strlen(ghs[i]);
-      geohash_decode(ghs[i], precision, &latitude[i], &longitude[i], &delta_latitude[i], &delta_longitude[i], adj_lat, adj_lon);
+      int ret = geohash_decode(ghs[i], precision, &latitude[i], &longitude[i],
+                               &delta_latitude[i], &delta_longitude[i], adj_lat, adj_lon);
+      if (ret == GEOHASH_INVALIDCODE) {
+        stop("Invalid geohash; check '%s' at index %d.\nValid characters: [0123456789bcdefghjkmnpqrstuvwxyz]",
+             (std::string) ghs[i], i + 1);
+      }
     }
   }
 

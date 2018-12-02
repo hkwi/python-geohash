@@ -1,6 +1,8 @@
 # wrapper to C++ call to do some argument handling in R
 
 gh_decode = function(geohashes, include_delta = FALSE, coord_loc = 'c') {
+  if (length(coord_loc) > 1L)
+    stop("Please provide only one value for 'coord_loc'")
   coord_loc = switch(
     tolower(coord_loc),
     'centroid' = , 'c' = 0L,
