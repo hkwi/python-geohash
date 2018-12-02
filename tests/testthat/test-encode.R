@@ -39,5 +39,5 @@ test_that('geohash encoder works', {
   expect_equal(gh_encode(y, 29347590823475982734), 'sb18en')
 
   # missing input
-  expect_equal(gh_encode(c(y, NA), c(x, NA)), c('8b18en', NA_character_))
+  expect_equal(gh_encode(c(y, NA), c(x, NA)), c('s0h09n', NA_character_))
 })
