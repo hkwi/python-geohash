@@ -319,10 +319,22 @@ StringVector gh_encode_(NumericVector latitude, NumericVector longitude, int pre
 
   if (precision > 1) {
     for(int i = 0; i < n; i++) {
+      if (latitude[i] >= 90 || latitude[i] < -90) {
+        stop("Invalid latitude at index %d; must be in [-90, 90)", i + 1);
+      }
+      if (longitude[i] < -180 || longitude[i] >= 180) {
+        longitude[i] = std::fmod(longitude[i] + 180, 360) - 180;
+      }
       ghs[i] = geohash_encode(latitude[i], longitude[i], precision);
     }
   } else {
     for(int i = 0; i < n; i++) {
+      if (latitude[i] >= 90 || latitude[i] < -90) {
+        stop("Invalid latitude at index %d; must be in [-90, 90)", i + 1);
+      }
+      if (longitude[i] < -180 || longitude[i] >= 180) {
+        longitude[i] = std::fmod(longitude[i] + 180, 360) - 180;
+      }
       ghs[i] = geohash_encode1(latitude[i], longitude[i]);
     }
   }
