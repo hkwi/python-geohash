@@ -484,38 +484,47 @@ List gh_decode_(StringVector ghs, int coord_loc, bool include_delta) {
   // center
   case 0:
     adj_lat = adj_lon = 1;
+    break;
   // south-west
   case 1:
     adj_lat = adj_lon = 0;
+    break;
   // south
   case 2:
     adj_lat = 0;
     adj_lon = 1;
+    break;
   // south-east
   case 3:
     adj_lat = 0;
     adj_lon = 2;
+    break;
   // east
   case 4:
     adj_lat = 1;
     adj_lon = 2;
+    break;
   // north-east
   case 5:
     adj_lat = adj_lon = 2;
+    break;
   // north
   case 6:
     adj_lat = 2;
     adj_lon = 1;
+    break;
   // north-west
   case 7:
     adj_lat = 2;
     adj_lon = 0;
+    break;
   // west
   case 8:
     adj_lat = 1;
     adj_lon = 0;
+    break;
   default:
-    stop("Internal error. Improper coord_loc should have been caught earlier."); // # nocov
+    stop("Internal error. Improper coord_loc %d should have been caught earlier.", coord_loc); // # nocov
   }
 
   NumericVector latitude(n);
