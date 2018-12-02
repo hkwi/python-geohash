@@ -4,7 +4,7 @@ Title: Tools for working with geohashes
 Author: Michael Chirico, Hiroaki Kawai
 Maintainer: Michael Chirico <MichaelChirico4@gmail.com>
 Depends: R (>= 3.0.0)
-Description: Tools for working with Gustavo Niemeyer's geohash coordinate system, ported to R from Hiroaki Kawai's Python implementation and embellished to sit naturally in the R ecosystem
+Description: Tools for working with Gustavo Niemeyer's geohash coordinate system, ported to R from Hiroaki Kawai's Python implementation and embellished to sit naturally in the R ecosystem. 
 URL: https://github.com/MichaelChirico/geohashTools
 YEAR: 2018
 License: MIT + file LICENSE
