@@ -2,9 +2,29 @@
 
 This package provides tools for working with [Gustavo](https://github.com/niemeyer) [Niemeyer](https://twitter.com/gniemeyer)'s [geohash](https://en.wikipedia.org/wiki/Geohash) system of nestable, compact global coordinates based on [Z-order curves](https://en.wikipedia.org/wiki/Z-order_curve).
 
-The C++ source code is largely copied from [Hiroaki Kawai](https://github.com/hkwi)'s excellent implementation of geohash encoding/decoding built with a [Python API](https://github.com/hkwi/python-geohash).
+The C++ source code is largely copied from [Hiroaki Kawai](https://github.com/hkwi)'s excellent implementation of geohash encoding/decoding built with a [Python API](https://github.com/hkwi/python-geohash), with minor top-level tweaks to match the [`Rcpp`](http://www.rcpp.org/) API to R.
 
-PS you should also check out these online tools for working with geohashes:
+## Encoding geohashes
+
+ - `gh_encode`
+
+## Decoding geohashes
+
+ - `gh_decode`
+
+## Helper functions
+
+ - `gh_neighbors`
+ - `gh_delta`
+
+## API to other GIS tools in R
+
+ - `sp`
+ - `sf`
+
+## See also
+
+You might also get benefit out of these online tools for working with geohashes:
 
   - http://www.movable-type.co.uk/scripts/geohash.html
   - http://geohash.gofreerange.com/
