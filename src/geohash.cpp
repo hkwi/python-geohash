@@ -426,7 +426,7 @@ static int geohashstr_to_interleaved(char* r, size_t length, uint16_t *interleav
 /*
    (latitude, longitude) will be that of south west point.
 */
-static int geohash_decode_impl(char* r, size_t length, double *latitude, double *longitude){
+static int geohash_decode_impl(char* r, size_t length, double *latitude, double *longitude, double *delta_latitude, double *delta_longitude, int ky, int kx){
 	uint16_t intr_auto[8];
 	uint16_t *interleaved = intr_auto;
 	size_t intr_length = length*5/16+1;
@@ -459,16 +459,95 @@ static int geohash_decode_impl(char* r, size_t length, double *latitude, double 
 	double t;
 
 	i64_to_double(lat64, &t);
-	*latitude = t*90.0;
+	*delta_latitude = 90/(1 << (length/2*5 + length%2*2));
+	*latitude = t*90.0 + *delta_latitude * (double) ky;
 
 	i64_to_double(lon64, &t);
-	*longitude = t*180.0;
+	*delta_longitude = 180/(1 << (length/2*5 + length%2*3));
+	*longitude = t*180.0 + *delta_longitude * (double) kx;
 
 	return GEOHASH_OK;
 }
 
-int geohash_decode(char* r, size_t length, double *latitude, double *longitude){
-	return geohash_decode_impl(r, length, latitude, longitude);
+int geohash_decode(char* r, size_t length, double *latitude, double *longitude, double *delta_latitude, double *delta_longitude, int ky, int kx){
+	return geohash_decode_impl(r, length, latitude, longitude, delta_latitude, delta_longitude, ky, kx);
+}
+
+// [[Rcpp::export]]
+List gh_decode_(StringVector ghs, int coord_loc, bool include_delta) {
+  int n = ghs.size();
+
+  int adj_lat;
+  int adj_lon;
+
+  switch (coord_loc) {
+  // center
+  case 0:
+    adj_lat = adj_lon = 1;
+  // south-west
+  case 1:
+    adj_lat = adj_lon = 0;
+  // south
+  case 2:
+    adj_lat = 0;
+    adj_lon = 1;
+  // south-east
+  case 3:
+    adj_lat = 0;
+    adj_lon = 2;
+  // east
+  case 4:
+    adj_lat = 1;
+    adj_lon = 2;
+  // north-east
+  case 5:
+    adj_lat = adj_lon = 2;
+  // north
+  case 6:
+    adj_lat = 2;
+    adj_lon = 1;
+  // north-west
+  case 7:
+    adj_lat = 2;
+    adj_lon = 0;
+  // west
+  case 8:
+    adj_lat = 1;
+    adj_lon = 0;
+  default:
+    stop("Internal error. Improper coord_loc should have been caught earlier."); // # nocov
+  }
+
+  NumericVector latitude(n);
+  NumericVector longitude(n);
+  NumericVector delta_latitude(n);
+  NumericVector delta_longitude(n);
+
+  for (int i = 0; i < n; i++) {
+    if (StringVector::is_na(ghs[i])) {
+      latitude[i] = longitude[i] = NA_REAL;
+      if (include_delta) {
+        delta_latitude[i] = delta_longitude[i] = NA_REAL;
+      }
+    } else {
+      int precision = strlen(ghs[i]);
+      geohash_decode(ghs[i], precision, &latitude[i], &longitude[i], &delta_latitude[i], &delta_longitude[i], adj_lat, adj_lon);
+    }
+  }
+
+  if (include_delta) {
+    return List::create(
+      _["latitude"] = latitude,
+      _["longitude"] = longitude,
+      _["delta_latitude"] = delta_latitude,
+      _["delta_longitude"] = delta_longitude
+    );
+  } else {
+    return List::create(
+      _["latitude"] = latitude,
+      _["longitude"] = longitude
+    );
+  }
 }
 
 /**

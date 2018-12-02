@@ -18,9 +18,23 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// gh_decode_
+List gh_decode_(StringVector ghs, int coord_loc, bool include_delta);
+RcppExport SEXP _geohashTools_gh_decode_(SEXP ghsSEXP, SEXP coord_locSEXP, SEXP include_deltaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< StringVector >::type ghs(ghsSEXP);
+    Rcpp::traits::input_parameter< int >::type coord_loc(coord_locSEXP);
+    Rcpp::traits::input_parameter< bool >::type include_delta(include_deltaSEXP);
+    rcpp_result_gen = Rcpp::wrap(gh_decode_(ghs, coord_loc, include_delta));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_geohashTools_gh_encode_", (DL_FUNC) &_geohashTools_gh_encode_, 3},
+    {"_geohashTools_gh_decode_", (DL_FUNC) &_geohashTools_gh_decode_, 3},
     {NULL, NULL, 0}
 };
 
