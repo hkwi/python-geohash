@@ -2,6 +2,6 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 gh_encode_ <- function(latitude, longitude, precision = 6L) {
-    .Call(`_geohash_tools_gh_encode_`, latitude, longitude, precision)
+    .Call(`_geohashTools_gh_encode_`, latitude, longitude, precision)
 }
 

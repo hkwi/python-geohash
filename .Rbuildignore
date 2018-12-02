@@ -1,0 +1,8 @@
+^.*\.Rproj$
+^\.Rproj\.user$
+^.*\.png$
+^README.Rmd$
+^README-*$
+^geohashTools.*\.tar\.gz$
+
+
