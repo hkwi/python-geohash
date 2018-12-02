@@ -5,6 +5,10 @@ test_that('geohash encoder works', {
   # test defaults on scalar input
   expect_equal(gh_encode(y, x), 's0h09n')
 
+  # geohash cells are _left closed, right open_: [x1, x2) x [y1, y2), see:
+  #   http://geohash.org/s000
+  expect_equal(gh_encode(0, 0, 1L), 's')
+
   # test precision argument
   expect_equal(gh_encode(y, x, 12L), 's0h09nrnzgqv')
   # maximum precision
@@ -32,7 +36,6 @@ test_that('geohash encoder works', {
   expect_equal(gh_encode(y, 180), '80008n')
   expect_equal(gh_encode(y, 29347590823475982734), 'sb18en')
 
-  # geohash cells are _left closed, right open_: [x1, x2) x [y1, y2), see:
-  #   http://geohash.org/s000
-  expect_equal(gh_encode(0, 0, 1L), 's')
+  # missing input
+  expect_equal(gh_encode(c(y, NA), c(x, NA)), c('8b18en', NA_character_))
 })

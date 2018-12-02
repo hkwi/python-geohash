@@ -17,10 +17,11 @@ gh_encode(latitude, longitude, precision = 6L)
 }
 \details{
   \code{precision} is limited to at most 28. This level of precision encodes locations on the globe at a nanometer scale and is already more than enough for basically all applications.
-}
+
   Longitudes outside \code{[-180, 180)} will be wrapped appropriately to the standard longitude grid.
+}
 \value{
-  \code{character} vector of geohashes corresponding to the input.
+  \code{character} vector of geohashes corresponding to the input. \code{NA} in gives \code{NA} out.
 }
 \references{
   \url{http://geohash.org/} ( Gustavo Niemeyer's original geohash service )\cr
