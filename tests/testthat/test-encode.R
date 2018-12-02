@@ -31,6 +31,8 @@ test_that('geohash encoder works', {
                'Invalid latitude at index 2', fixed = TRUE)
   expect_error(gh_encode(y, x, c(5, 6)),
                'More than one precision value', fixed = TRUE)
+  expect_error(gh_encode(c(y, y), x),
+               'Inputs must be the same size', fixed = TRUE)
 
   # semi-valid auto-corrected input -- 180 --> -180 by wrapping
   expect_equal(gh_encode(y, 180), '80008n')
