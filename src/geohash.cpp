@@ -244,6 +244,70 @@ std::string geohash_encode(double latitude, double longitude, int precision){
 	return gh_string;
 }
 
+std::string geohash_encode1(double latitude, double longitude) {
+  if (longitude < 0) {
+    if (longitude < -90) {
+      if (longitude < -135) {
+        if (latitude < 0) {
+          if (latitude < -45) { return "0"; } else { return "2"; }
+        } else {
+          if (latitude < 45) { return "8"; } else { return "b"; }
+        }
+      } else {
+        if (latitude < 0) {
+          if (latitude < -45) { return "1"; } else { return "3"; }
+        } else {
+          if (latitude < 45) { return "9"; } else { return "c"; }
+        }
+      }
+    } else {
+      if (longitude < -45) {
+        if (latitude < 0) {
+          if (latitude < -45) { return "4"; } else { return "6"; }
+        } else {
+          if (latitude < 45) { return "d"; } else { return "f"; }
+        }
+      } else {
+        if (latitude < 0) {
+          if (latitude < -45) { return "3"; } else { return "7"; }
+        } else {
+          if (latitude < 45) { return "e"; } else { return "g"; }
+        }
+      }
+    }
+  } else {
+    if (longitude < 90) {
+      if (longitude < 45) {
+        if (latitude < 0) {
+          if (latitude < -45) { return "h"; } else { return "k"; }
+        } else {
+          if (latitude < 45) { return "s"; } else { return "u"; }
+        }
+      } else {
+        if (latitude < 0) {
+          if (latitude < -45) { return "j"; } else { return "m"; }
+        } else {
+          if (latitude < 45) { return "t"; } else { return "v"; }
+        }
+      }
+    } else {
+      if (longitude < 135) {
+        if (latitude < 0) {
+          if (latitude < -45) { return "n"; } else { return "q"; }
+        } else {
+          if (latitude < 45) { return "w"; } else { return "z"; }
+        }
+      } else {
+        if (latitude < 0) {
+          if (latitude < -45) { return "p"; } else { return "r"; }
+        } else {
+          if (latitude < 45) { return "x"; } else { return "z"; }
+        }
+      }
+    }
+  }
+}
+
 // [[Rcpp::export]]
 StringVector gh_encode(NumericVector latitude, NumericVector longitude, int precision = 6) {
   int n = latitude.size();
@@ -251,10 +315,15 @@ StringVector gh_encode(NumericVector latitude, NumericVector longitude, int prec
 
   StringVector ghs(n);
 
-  for(int i = 0; i < n; i++) {
-    ghs[i] = geohash_encode(latitude[i], longitude[i], precision);
+  if (precision > 1) {
+    for(int i = 0; i < n; i++) {
+      ghs[i] = geohash_encode(latitude[i], longitude[i], precision);
+    }
+  } else {
+    for(int i = 0; i < n; i++) {
+      ghs[i] = geohash_encode1(latitude[i], longitude[i]);
+    }
   }
-
   return ghs;
 }
 
