@@ -5,4 +5,8 @@ export(gh_encode)
 export(gh_decode)
 export(gh_neighbors, gh_neighbours)
 
+export(gh_to_sp, gh_to_spdf)
+S3method(gh_to_spdf, default)
+S3method(gh_to_spdf, data.frame)
+
 export(gh_delta)
