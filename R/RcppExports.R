@@ -9,7 +9,7 @@ gh_decode_ <- function(geohashes, include_delta, coord_loc) {
     .Call(`_geohashTools_gh_decode_`, geohashes, include_delta, coord_loc)
 }
 
-gh_neighbors_ <- function(geohashes) {
-    .Call(`_geohashTools_gh_neighbors_`, geohashes)
+gh_neighbors_ <- function(geohashes, self = TRUE) {
+    .Call(`_geohashTools_gh_neighbors_`, geohashes, self)
 }
 

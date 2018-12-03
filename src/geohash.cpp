@@ -748,7 +748,7 @@ int geo_neighbors(char *hashcode, char* dst, size_t dst_length, int *string_coun
 }
 
 // [[Rcpp::export]]
-List gh_neighbors_(StringVector geohashes) {
+List gh_neighbors_(StringVector geohashes, bool self = true) {
   int n = geohashes.size();
 
   StringVector southwest(n);
@@ -831,14 +831,28 @@ List gh_neighbors_(StringVector geohashes) {
       northeast[i] = buffer + 7*blen;
     } else stop("Internal error. Please report.");
   }
-  return List::create(
-    _["southwest"] = southwest,
-    _["south"] = south,
-    _["southeast"] = southeast,
-    _["east"] = east,
-    _["northeast"] = northeast,
-    _["north"] = north,
-    _["northwest"] = northwest,
-    _["west"] = west
-  );
+  if (self) {
+    return List::create(
+      _["self"] = geohashes,
+      _["southwest"] = southwest,
+      _["south"] = south,
+      _["southeast"] = southeast,
+      _["east"] = east,
+      _["northeast"] = northeast,
+      _["north"] = north,
+      _["northwest"] = northwest,
+      _["west"] = west
+    );
+  } else {
+    return List::create(
+      _["southwest"] = southwest,
+      _["south"] = south,
+      _["southeast"] = southeast,
+      _["east"] = east,
+      _["northeast"] = northeast,
+      _["north"] = north,
+      _["northwest"] = northwest,
+      _["west"] = west
+    );
+  }
 }

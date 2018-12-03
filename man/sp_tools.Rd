@@ -37,5 +37,5 @@ gh_to_spdf(\dots)
 \examples{
   # get the neighborhood of this geohash in downtown Apia as an sp object
   downtown = '2jtc5x'
-  apia = gh_to_sp(unlist(c(downtown, gh_neighbors(downtown))))
+  apia = gh_to_sp(unlist(gh_neighbors(downtown)))
 }

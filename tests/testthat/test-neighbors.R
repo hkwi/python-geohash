@@ -5,20 +5,21 @@ test_that('geohash adjacency list works', {
   ty_turtle_beach = 'sws374'
   xunantunich = 'd5095x0'
 
-  expect_equal(gh_neighbors(my_turtle_beach),
+  expect_equal(gh_neighbors(my_turtle_beach, self = FALSE),
                list(southwest = "w0znzr", south = "w0znzx",
                     southeast = "w0znzz", east = "w0zppb",
                     northeast = "w0zppc", north = "w0zpp9",
                     northwest = "w0zpp3", west = "w0zpp2"))
   # commonwealthers *shakes fist*
-  expect_equal(gh_neighbours(my_turtle_beach),
+  expect_equal(gh_neighbours(my_turtle_beach, self = FALSE),
                list(southwest = "w0znzr", south = "w0znzx",
                     southeast = "w0znzz", east = "w0zppb",
                     northeast = "w0zppc", north = "w0zpp9",
                     northwest = "w0zpp3", west = "w0zpp2"))
 
   # input precision doesn't matter; vectors work
-  expect_equal(gh_neighbors(c(my_turtle_beach, ty_turtle_beach, xunantunich)),
+  expect_equal(gh_neighbors(c(my_turtle_beach, ty_turtle_beach, xunantunich),
+                            self = FALSE),
                list(southwest = c("w0znzr", "sws36c", "d5095qz"),
                     south = c("w0znzx", "sws371", "d5095wb"),
                     southeast = c("w0znzz", "sws373", "d5095wc"),
@@ -29,7 +30,7 @@ test_that('geohash adjacency list works', {
                     west = c("w0zpp2", "sws36f", "d5095rp")))
 
   # global boundary geohashes
-  expect_equal(gh_neighbors(c('5', 'u', 'pv', 'zry')),
+  expect_equal(gh_neighbors(c('5', 'u', 'pv', 'zry'), self = FALSE),
                list(southwest = c(NA, "e", "ps", "zrt"),
                     south = c(NA, "s", "pu", "zrw"),
                     southeast = c(NA, "t", "0h", "zrx"),
@@ -38,4 +39,12 @@ test_that('geohash adjacency list works', {
                     north = c("7", NA, "py", NA),
                     northwest = c("6", NA, "pw", NA),
                     west = c("4", "g", "pt", "zrv")))
+
+  # option self = TRUE
+  expect_equal(gh_neighbors(my_turtle_beach),
+               list(self = my_turtle_beach,
+                    southwest = "w0znzr", south = "w0znzx",
+                    southeast = "w0znzz", east = "w0zppb",
+                    northeast = "w0zppc", north = "w0zpp9",
+                    northwest = "w0zpp3", west = "w0zpp2"))
 })
