@@ -3,3 +3,5 @@ importFrom(Rcpp, sourceCpp)
 
 export(gh_encode)
 export(gh_decode)
+
+export(gh_delta)
