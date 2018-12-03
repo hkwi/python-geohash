@@ -317,12 +317,12 @@ StringVector gh_encode_(NumericVector latitude, NumericVector longitude, int pre
   int n = latitude.size();
   if (n != longitude.size()) stop("Inputs must be the same size.");
 
-  StringVector ghs(n);
+  StringVector geohashes(n);
 
   if (precision > 1) {
     for(int i = 0; i < n; i++) {
       if (R_IsNA(latitude[i]) || R_IsNA(longitude[i])) {
-        ghs[i] = NA_STRING;
+        geohashes[i] = NA_STRING;
       } else {
         if (latitude[i] >= 90 || latitude[i] < -90) {
           stop("Invalid latitude at index %d; must be in [-90, 90)", i + 1);
@@ -330,13 +330,13 @@ StringVector gh_encode_(NumericVector latitude, NumericVector longitude, int pre
         if (longitude[i] < -180 || longitude[i] >= 180) {
           longitude[i] = std::fmod(longitude[i] + 180, 360) - 180;
         }
-        ghs[i] = geohash_encode(latitude[i], longitude[i], precision);
+        geohashes[i] = geohash_encode(latitude[i], longitude[i], precision);
       }
     }
   } else {
     for(int i = 0; i < n; i++) {
       if (R_IsNA(latitude[i]) || R_IsNA(longitude[i])) {
-        ghs[i] = NA_STRING;
+        geohashes[i] = NA_STRING;
       } else {
         if (latitude[i] >= 90 || latitude[i] < -90) {
           stop("Invalid latitude at index %d; must be in [-90, 90)", i + 1);
@@ -344,11 +344,11 @@ StringVector gh_encode_(NumericVector latitude, NumericVector longitude, int pre
         if (longitude[i] < -180 || longitude[i] >= 180) {
           longitude[i] = std::fmod(longitude[i] + 180, 360) - 180;
         }
-        ghs[i] = geohash_encode1(latitude[i], longitude[i]);
+        geohashes[i] = geohash_encode1(latitude[i], longitude[i]);
       }
     }
   }
-  return ghs;
+  return geohashes;
 }
 
 /**
@@ -474,8 +474,8 @@ int geohash_decode(char* r, size_t length, double *latitude, double *longitude, 
 }
 
 // [[Rcpp::export]]
-List gh_decode_(StringVector ghs, bool include_delta, int coord_loc) {
-  int n = ghs.size();
+List gh_decode_(StringVector geohashes, bool include_delta, int coord_loc) {
+  int n = geohashes.size();
 
   int adj_lat;
   int adj_lon;
@@ -533,18 +533,18 @@ List gh_decode_(StringVector ghs, bool include_delta, int coord_loc) {
   NumericVector delta_longitude(n);
 
   for (int i = 0; i < n; i++) {
-    if (StringVector::is_na(ghs[i])) {
+    if (StringVector::is_na(geohashes[i])) {
       latitude[i] = longitude[i] = NA_REAL;
       if (include_delta) {
         delta_latitude[i] = delta_longitude[i] = NA_REAL;
       }
     } else {
-      int precision = strlen(ghs[i]);
-      int ret = geohash_decode(ghs[i], precision, &latitude[i], &longitude[i],
+      int precision = strlen(geohashes[i]);
+      int ret = geohash_decode(geohashes[i], precision, &latitude[i], &longitude[i],
                                &delta_latitude[i], &delta_longitude[i], adj_lat, adj_lon);
       if (ret == GEOHASH_INVALIDCODE) {
         stop("Invalid geohash; check '%s' at index %d.\nValid characters: [0123456789bcdefghjkmnpqrstuvwxyz]",
-             (std::string) ghs[i], i + 1);
+             (std::string) geohashes[i], i + 1);
       }
     }
   }
@@ -616,7 +616,7 @@ static int uint8s_plus_minus(uint8_t *src, uint8_t *dst, size_t length, int plus
 	return !0;
 }
 
-static int neighbors(uint16_t *interleaved, size_t bitlength, uint16_t* dst, size_t dst_length, size_t *dst_count){
+static int neighbors(uint16_t *interleaved, size_t bitlength, uint16_t* dst, size_t dst_length, uint8_t *success){
 	size_t interleaved_length = 0;
 	while(interleaved_length*16 < bitlength){
 		interleaved_length++;
@@ -659,13 +659,15 @@ static int neighbors(uint16_t *interleaved, size_t bitlength, uint16_t* dst, siz
 	uint8s_plus_minus(lons[0], lons[1], lon_len, 0);
 	uint8s_plus_minus(lons[0], lons[2], lon_len, 1);
 
-	size_t neighbour_count = 0;
+	uint8_t neighbour_count = 0;
 	for(unsigned int i=0;i<3;i++){
 		if(i>0 && uint8s_cmp(lats[i-1], lats[i], lat_len)==0){
+		  neighbour_count++;
 			continue;
 		}
 		for(int j=0;j<3;j++){
 			if(j>0 && uint8s_cmp(lons[j-1], lons[j], lon_len)==0){
+			  neighbour_count++;
 				continue;
 			}
 			if(i==0 && j==0){
@@ -675,17 +677,17 @@ static int neighbors(uint16_t *interleaved, size_t bitlength, uint16_t* dst, siz
 			for(unsigned int k=0; k<interleaved_length; k++){
 				dst[interleaved_length*neighbour_count+k] = interleave(lons[j][k], lats[i][k]);
 			}
+			// record position of successfully identified neighbor
+			*success |= 1 << neighbour_count;
 			neighbour_count++;
 		}
 	}
-	if(dst_count){
-		*dst_count = neighbour_count;
-	}
+
 	free(latlons);
 	return GEOHASH_OK;
 }
 
-static int geo_neighbors_impl(char *hashcode, char* dst, size_t dst_length, int *string_count){
+static int geo_neighbors_impl(char *hashcode, char* dst, size_t dst_length, uint8_t *success){
 	int ret = GEOHASH_OK;
 	size_t hashcode_length = strlen(hashcode);
 	size_t interleaved_length = 0;
@@ -702,9 +704,8 @@ static int geo_neighbors_impl(char *hashcode, char* dst, size_t dst_length, int 
 		return ret;
 	}
 
-	size_t dst_count = 0;
 	uint16_t *intr_dst = interleaved + interleaved_length;
-	if((ret = neighbors(interleaved, hashcode_length*5, intr_dst, interleaved_length*8, &dst_count) != GEOHASH_OK)){
+	if((ret = neighbors(interleaved, hashcode_length*5, intr_dst, interleaved_length*8, success) != GEOHASH_OK)){
 		free(interleaved);
 		return ret;
 	}
@@ -718,7 +719,7 @@ static int geo_neighbors_impl(char *hashcode, char* dst, size_t dst_length, int 
 		return GEOHASH_NOMEMORY;
 	}
 
-	for(unsigned int i=0; i<dst_count; i++){
+	for(unsigned int i=0; i<*success; i++){
 		if((ret = interleaved_to_geohashstr(intr_dst+i*interleaved_length, interleaved_length, buffer, blen)) != GEOHASH_OK){
 			free(interleaved);
 			free(buffer);
@@ -730,12 +731,50 @@ static int geo_neighbors_impl(char *hashcode, char* dst, size_t dst_length, int 
 	}
 	free(interleaved);
 	free(buffer);
-	if(string_count){
-		*string_count = dst_count;
-	}
 
 	return GEOHASH_OK;
 }
-int geo_neighbors(char *hashcode, char* dst, size_t dst_length, int *string_count){
-	return geo_neighbors_impl(hashcode, dst, dst_length, string_count);
+int geo_neighbors(char *hashcode, char* dst, size_t dst_length, uint8_t *success){
+	return geo_neighbors_impl(hashcode, dst, dst_length, success);
+}
+
+// [[Rcpp::export]]
+List gh_neighbors_(StringVector geohashes) {
+  int n = geohashes.size();
+
+  StringVector southwest(n);
+  StringVector south(n);
+  StringVector southeast(n);
+  StringVector east(n);
+  StringVector northeast(n);
+  StringVector north(n);
+  StringVector northwest(n);
+  StringVector west(n);
+
+  for (int i = 0; i < n; i++) {
+    size_t blen = strlen(geohashes[i]) + 1;
+    size_t buffer_sz = 8*blen;
+
+    char *buffer = (char*) malloc(sizeof(char)* buffer_sz);
+    if(buffer == NULL){
+      stop("Out of memory.");
+    }
+
+    int ret;
+    uint8_t success = 0;
+    if((ret = geo_neighbors_impl(geohashes[i], buffer, buffer_sz, &success)) != GEOHASH_OK){
+      stop("Internal error, code: %d", ret);
+    }
+    east[i] = buffer;
+  }
+  return List::create(
+    _["southwest"] = southwest,
+    _["south"] = south,
+    _["southeast"] = southeast,
+    _["east"] = east,
+    _["northeast"] = northeast,
+    _["north"] = north,
+    _["northwest"] = northwest,
+    _["west"] = west
+  );
 }

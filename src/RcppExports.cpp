@@ -19,15 +19,26 @@ BEGIN_RCPP
 END_RCPP
 }
 // gh_decode_
-List gh_decode_(StringVector ghs, bool include_delta, int coord_loc);
-RcppExport SEXP _geohashTools_gh_decode_(SEXP ghsSEXP, SEXP include_deltaSEXP, SEXP coord_locSEXP) {
+List gh_decode_(StringVector geohashes, bool include_delta, int coord_loc);
+RcppExport SEXP _geohashTools_gh_decode_(SEXP geohashesSEXP, SEXP include_deltaSEXP, SEXP coord_locSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< StringVector >::type ghs(ghsSEXP);
+    Rcpp::traits::input_parameter< StringVector >::type geohashes(geohashesSEXP);
     Rcpp::traits::input_parameter< bool >::type include_delta(include_deltaSEXP);
     Rcpp::traits::input_parameter< int >::type coord_loc(coord_locSEXP);
-    rcpp_result_gen = Rcpp::wrap(gh_decode_(ghs, include_delta, coord_loc));
+    rcpp_result_gen = Rcpp::wrap(gh_decode_(geohashes, include_delta, coord_loc));
+    return rcpp_result_gen;
+END_RCPP
+}
+// gh_neighbors_
+List gh_neighbors_(StringVector geohashes);
+RcppExport SEXP _geohashTools_gh_neighbors_(SEXP geohashesSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< StringVector >::type geohashes(geohashesSEXP);
+    rcpp_result_gen = Rcpp::wrap(gh_neighbors_(geohashes));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -35,6 +46,7 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_geohashTools_gh_encode_", (DL_FUNC) &_geohashTools_gh_encode_, 3},
     {"_geohashTools_gh_decode_", (DL_FUNC) &_geohashTools_gh_decode_, 3},
+    {"_geohashTools_gh_neighbors_", (DL_FUNC) &_geohashTools_gh_neighbors_, 1},
     {NULL, NULL, 0}
 };
 
