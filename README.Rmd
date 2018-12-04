@@ -94,7 +94,7 @@ gh_neighbors('w4urs5pc')
 
 Returning to public art locations in Chicago, we can visualize the spatial aggregations carried out above by converting to `sp`, combining with a shapefile of Chicago, and plotting:
 
-```{r chicago_plot}
+```{r chicago_plot, message = FALSE, results = 'hide'}
 # needed for plotting
 library(sp)
 # needed to load neighborhoods shapefile
@@ -123,6 +123,7 @@ plot(chicago, lwd = .5, main = 'Public Art Locations in Chicago')
 plot(artSPDF, col = color_values(artSPDF$N, alpha = 192), add = TRUE)
 ```
 
+Chicago connoisseurs will recognize the biggest concentration around Lincoln Park, with another concentration along the waterfront near Millenium/Grant Parks.
 
 The process for `sf` is similar; just replace `gh_to_spdf` with `gh_to_sf`.
 

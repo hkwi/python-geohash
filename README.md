@@ -155,18 +155,6 @@ Returning to public art locations in Chicago, we can visualize the spatial aggre
 library(sp)
 # needed to load neighborhoods shapefile
 library(rgdal)
-```
-
-    ## rgdal: version: 1.3-6, (SVN revision 773)
-    ##  Geospatial Data Abstraction Library extensions to R successfully loaded
-    ##  Loaded GDAL runtime: GDAL 2.1.3, released 2017/20/01
-    ##  Path to GDAL shared files: /Users/michael.chirico/Library/R/3.5/library/rgdal/gdal
-    ##  GDAL binary built with GEOS: FALSE 
-    ##  Loaded PROJ.4 runtime: Rel. 4.9.3, 15 August 2016, [PJ_VERSION: 493]
-    ##  Path to PROJ.4 shared files: /Users/michael.chirico/Library/R/3.5/library/rgdal/proj
-    ##  Linking to sp version: 1.3-1
-
-``` r
 # for pretty coloring
 library(colourvalues)
 
@@ -180,14 +168,6 @@ download.file(shp_url, tmp)
 unzip(tmp, exdir = tmpf)
 
 chicago = readOGR(tmpf, 'Neighborhoods_2012b')
-```
-
-    ## OGR data source with driver: ESRI Shapefile 
-    ## Source: "/private/var/folders/w8/z_8_41zd3f31mlfxlstp44hr0000gn/T/RtmphzQ2SC", layer: "Neighborhoods_2012b"
-    ## with 98 features
-    ## It has 4 fields
-
-``` r
 # convert to lat/lon CRS
 chicago = spTransform(chicago, CRS('+init=epsg:4326'))
 
@@ -200,6 +180,8 @@ plot(artSPDF, col = color_values(artSPDF$N, alpha = 192), add = TRUE)
 ```
 
 ![](README-chicago_plot-1.png)
+
+Chicago connoisseurs will recognize the biggest concentration around Lincoln Park, with another concentration along the waterfront near Millenium/Grant Parks.
 
 The process for `sf` is similar; just replace `gh_to_spdf` with `gh_to_sf`.
 
