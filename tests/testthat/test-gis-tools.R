@@ -85,5 +85,21 @@ test_that('gh_to_spdf.data.frame works', {
   expect_error(gh_to_spdf(DF), 'Searched for geohashes', fixed = TRUE)
 })
 
+test_that('gh_to_sf works', {
+  baku = c("tp5my", "tp5mt", "tp5mw", "tp5mx", "tp5mz",
+           "tp5qp", "tp5qn", "tp5qj", "tp5mv")
 
+  ghSF = gh_to_sf(baku)
 
+  expect_is(ghSF, 'sf')
+  expect_equal(ghSF$ID, 1:9)
+  expect_length(ghSF$geometry, 9L)
+
+  expect_is(ghSF$geometry[1L], 'sfc')
+  expect_is(ghSF$geometry[1L][[1L]], 'sfg')
+  expect_equal(ghSF$geometry[1L][[1L]][[1L]],
+               matrix(c(49.833984375, 49.833984375, 49.8779296875,
+                        49.8779296875, 49.833984375, 40.3857421875,
+                        40.4296875, 40.4296875, 40.3857421875, 40.3857421875),
+                      nrow = 5L, ncol = 2L))
+})
