@@ -31,10 +31,10 @@ gh_to_spdf = function(...) {
   UseMethod('gh_to_spdf')
 }
 
-gh_to_spdf.default = function(gh, ...) {
+gh_to_spdf.default = function(geohashes, ...) {
   sp::SpatialPolygonsDataFrame(
-    gh_to_sp(gh),
-    data = data.frame(row.names = gh, ID = seq_along(gh))
+    gh_to_sp(geohashes),
+    data = data.frame(row.names = geohashes, ID = seq_along(geohashes))
   )
 }
 
@@ -45,4 +45,12 @@ gh_to_spdf.data.frame = function(gh_df, gh_col = 'gh', ...) {
   sp::SpatialPolygonsDataFrame(
     gh_to_sp(gh_df[[idx]]), data = gh_df, match.ID = FALSE
   )
+}
+
+gh_to_sf = function(...) {
+  if (!requireNamespace('sf', quietly = TRUE)) {
+    stop("This function requires an installation of sf; ",
+         "install.packages('sf') to proceed.")
+  }
+  sf::st_as_sf(gh_to_spdf(...))
 }

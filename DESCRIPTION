@@ -9,5 +9,5 @@ URL: https://github.com/MichaelChirico/geohashTools
 YEAR: 2018
 License: MIT + file LICENSE
 Imports: Rcpp (>= 1.0.0)
-Suggests: sp, testthat
+Suggests: sf, sp, testthat
 LinkingTo: Rcpp
