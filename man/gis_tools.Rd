@@ -29,9 +29,9 @@ gh_to_sf(geohashes)
   \code{gh_to_sp} relies on the \code{\link{gh_decode}} function. Note in particular that this function accepts any length of geohash (geohash-6, geohash-4, etc.) and is agnostic to potential overlap, though duplicates will be caught and excluded.
 
   \code{gh_to_spdf.data.frame} will use \code{match.ID = FALSE} in the call to \code{SpatialPolygonsDataFrame}. Please file an issue if you'd like this to be more flexible.
-}
 
   \code{gh_to_sf} is just a wrapper of \code{\link[sf]{st_as_sf}} around \code{gh_to_spdf}; as such it requires both \code{sp} and \code{sf} packages to work.
+}
 \value{
   For \code{gh_to_sp}, a \code{\link[sp]{SpatialPolygons}} object.
 

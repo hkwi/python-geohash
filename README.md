@@ -1,6 +1,6 @@
 
-`geohash_tools`
-===============
+`geohashTools`
+==============
 
 This package provides tools for working with [Gustavo](https://github.com/niemeyer) [Niemeyer](https://twitter.com/gniemeyer)'s [geohash](https://en.wikipedia.org/wiki/Geohash) system of nestable, compact global coordinates based on [Z-order curves](https://en.wikipedia.org/wiki/Z-order_curve). The system consists of carving the earth into equally-sized rectangles (when projected into latitude/longitude space) and nesting this process recursively.
 
@@ -33,9 +33,10 @@ gh_encode(11.3113917, -74.0779006, precision = 5L)
 We can use this as a simple, regular level of spatial aggregation for spatial points data, e.g., counting presence of public art throughout the city of Chicago, as captured in [this dataset](https://data.cityofchicago.org/Parks-Recreation/Parks-Public-Art/sj6t-9cju) provided by the City:
 
 ``` r
+## first, pull the data internally from https://data.cityofchicago.org
 tmp = tempfile(fileext = 'csv')
-URL = paste0('https://data.cityofchicago.org/api/views/',
-             'sj6t-9cju/rows.csv?accessType=DOWNLOAD')
+api_stem = 'https://data.cityofchicago.org/api/views/'
+URL = paste0(api_stem, 'sj6t-9cju/rows.csv?accessType=DOWNLOAD')
 download.file(URL, tmp)
 
 library(data.table)
@@ -94,7 +95,7 @@ gh_decode('sc54v', include_delta = TRUE)
     ## $delta_longitude
     ## [1] 0.02197266
 
-In terms of latitude and longitude, all geohashes with the same precision have the same dimensions (though the physical size of the "rectangle" changes depending on the latitude); as such it's easy to figure out the cell half-widths from the precision alone using `gh_delta`:
+In terms of latitude and longitude, all geohashes with the same precision have the same dimensions (though the physical size of the "rectangle" changes depending on the latitude); as such it's easy to figure out thecell half-widths from the precision alone using `gh_delta`:
 
 ``` r
 gh_delta(5L)
@@ -115,6 +116,9 @@ For example, Aung San Suu Kyi's childhood home is roughly at `w4urs5pc`, but thi
 gh_neighbors('w4urs5pc')
 ```
 
+    ## $self
+    ## [1] "w4urs5pc"
+    ## 
     ## $southwest
     ## [1] "w4urs5p8"
     ## 
@@ -142,13 +146,67 @@ gh_neighbors('w4urs5pc')
 API to other GIS tools in R
 ---------------------------
 
--   `sp`
--   `sf`
+`geohashTools` offers several helper functions for interfacing your geohash objects with GIS tools in R, namely `sp` and `sf`. This will facilitate the best part of working with GIS data -- the visualizations!
+
+Returning to public art locations in Chicago, we can visualize the spatial aggregations carried out above by converting to `sp`, combining with a shapefile of Chicago, and plotting:
+
+``` r
+# needed for plotting
+library(sp)
+# needed to load neighborhoods shapefile
+library(rgdal)
+```
+
+    ## rgdal: version: 1.3-6, (SVN revision 773)
+    ##  Geospatial Data Abstraction Library extensions to R successfully loaded
+    ##  Loaded GDAL runtime: GDAL 2.1.3, released 2017/20/01
+    ##  Path to GDAL shared files: /Users/michael.chirico/Library/R/3.5/library/rgdal/gdal
+    ##  GDAL binary built with GEOS: FALSE 
+    ##  Loaded PROJ.4 runtime: Rel. 4.9.3, 15 August 2016, [PJ_VERSION: 493]
+    ##  Path to PROJ.4 shared files: /Users/michael.chirico/Library/R/3.5/library/rgdal/proj
+    ##  Linking to sp version: 1.3-1
+
+``` r
+# for pretty coloring
+library(colourvalues)
+
+## first, pull neighborhood shapefiles from https://data.cityofchicago.org
+tmpf = tempdir()
+tmp = tempfile(tmpdir = tmpf)
+shp_url = paste0(api_stem, '9wp7-iasj/files/', 
+                 'TMTPQ_MTmUDEpDGCLt_B1uaiJmwhCKZ729Ecxq6BPfM',
+                 '?filename=Neighborhoods_2012.zip')
+download.file(shp_url, tmp)
+unzip(tmp, exdir = tmpf)
+
+chicago = readOGR(tmpf, 'Neighborhoods_2012b')
+```
+
+    ## OGR data source with driver: ESRI Shapefile 
+    ## Source: "/private/var/folders/w8/z_8_41zd3f31mlfxlstp44hr0000gn/T/RtmphzQ2SC", layer: "Neighborhoods_2012b"
+    ## with 98 features
+    ## It has 4 fields
+
+``` r
+# convert to lat/lon CRS
+chicago = spTransform(chicago, CRS('+init=epsg:4326'))
+
+artSPDF = gh_to_spdf(
+  art[ , .N, by = .(geohash = gh_encode(LATITUDE, LONGITUDE, 6L))],
+  gh_col = 'geohash'
+)
+plot(chicago, lwd = .5, main = 'Public Art Locations in Chicago')
+plot(artSPDF, col = color_values(artSPDF$N, alpha = 192), add = TRUE)
+```
+
+![](README-chicago_plot-1.png)
+
+The process for `sf` is similar; just replace `gh_to_spdf` with `gh_to_sf`.
 
 See also
---------
+========
 
-You might also get benefit out of these online tools for working with geohashes:
+You might get benefit out of these more interactive online tools for working with geohashes:
 
 -   <http://www.movable-type.co.uk/scripts/geohash.html>
 -   <http://geohash.gofreerange.com/>
