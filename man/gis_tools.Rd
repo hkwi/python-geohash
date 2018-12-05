@@ -7,12 +7,12 @@
 
 \title{ Helpers for interfacing geohashes with sp/sf objects }
 \description{
-  These functions smooth the gateway between working with geohashes and geospatial information built for the major geospatial packages in R, \code{\link[sp]{sp}} and \code{\link[sp]{sf}}.
+  These functions smooth the gateway between working with geohashes and geospatial information built for the major geospatial packages in R, \code{\link[sp]{sp}} and \code{\link[sf]{sf}}.
 }
 \usage{
 gh_to_sp(geohashes)
 gh_to_spdf(\dots)
-gh_to_sf(geohashes)
+gh_to_sf(\dots)
 
 \method{gh_to_spdf}{default}(geohashes, \dots)
 
@@ -20,7 +20,7 @@ gh_to_sf(geohashes)
 }
 
 \arguments{
-  \item{gh}{ \code{character} vector of geohashes to be converted to polygons. }
+  \item{geohashes}{ \code{character} vector of geohashes to be converted to polygons. }
   \item{\dots}{ Arguments for subsequent methods. }
   \item{gh_df}{ \code{data.frame} which 1) contains a column of geohashes to be converted to polygons and 2) will serve as the \code{data} slot of the resultant \code{\link[sp]{SpatialPolygonsDataFrame}} object. }
   \item{gh_col}{ \code{character} column name saying where the geohashes are stored in \code{gh_df}. }

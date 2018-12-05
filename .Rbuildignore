@@ -4,3 +4,6 @@
 ^README.Rmd$
 ^README-*$
 ^geohashTools.*\.tar\.gz$
+
+# vignette-alike
+^timing_comparison*
