@@ -12,13 +12,11 @@ test_that('geohash encoder works', {
   # test precision argument
   expect_equal(gh_encode(y, x, 12L), 's0h09nrnzgqv')
   # maximum precision
-  # TODO: figure out what's going on. works fine in Python.
-  #expect_equal(gh_encode(y, x, 26L), 's0h09nrnzgqv8je0f4jp6njn')
+  expect_equal(gh_encode(y, x, 26L), 's0h09nrnzgqv8je0f4jp6njn00')
   # truncation beyond there
-  # TODO: figure out what's going on. works fine in Python.
-  #expect_warning(out <- gh_encode(y, x, 27L),
-  #               'Precision is limited', fixed = TRUE)
-  # expect_equal(out, 's0h09nrnzgqv8je0f4jp6njn')
+  expect_warning(out <- gh_encode(y, x, 27L),
+                 'Precision is limited', fixed = TRUE)
+  expect_equal(out, 's0h09nrnzgqv8je0f4jp6njn00')
 
   # implicit integer truncation
   expect_equal(gh_encode(y, x, 1.04), 's')
@@ -37,9 +35,9 @@ test_that('geohash encoder works', {
                'Inputs must be the same size', fixed = TRUE)
 
   # semi-valid auto-corrected input -- 180 --> -180 by wrapping
-  # expect_equal(gh_encode(y, 180), '80008n')
-  # expect_equal(gh_encode(y, 29347590823475982734), 'sb18en')
+  expect_equal(gh_encode(y, 180), '80008n')
+  expect_equal(gh_encode(y, 29347590823475982734), 'sb18en')
 
   # missing input
-  # expect_equal(gh_encode(c(y, NA), c(x, NA)), c('s0h09n', NA_character_))
+  expect_equal(gh_encode(c(y, NA), c(x, NA)), c('s0h09n', NA_character_))
 })
