@@ -13,8 +13,8 @@ Tools and setup
 library(microbenchmark)
 library(data.table)
 
-nn = 10^(0:7)
-kk = 1:10
+nn = 10^(0:6)
+kk = 1:8
 timings = CJ(n_rows = nn, precision = kk)
 setkey(timings)
 ```
@@ -95,6 +95,7 @@ Absolute timing
 ---------------
 
 ``` r
+par(oma = c(0, 0, 2, 0))
 timings[ , {
   by = 'n_rows'
   xlab_map = c(n_rows = '# Rows', precision = 'Geohash Precision')
@@ -120,12 +121,13 @@ timings[ , {
 }]
 ```
 
-    ## Error in `[.data.table`(.SD, , lapply(.SD, mean), keyby = by, .SDcols = rel_cols): Some items of .SDcols are not column names (or are NA)
+![](timing-absolute_results-1.png)
 
 Comparison against `geohash`: Relative timing
 ---------------------------------------------
 
 ``` r
+par(oma = c(0, 0, 2, 0))
 timings[ , {
   by = 'n_rows'
   xlab_map = c(n_rows = '# Rows', precision = 'Geohash Precision')
@@ -152,4 +154,4 @@ timings[ , {
 }]
 ```
 
-    ## Error in `[.data.table`(.SD, , lapply(.SD, mean), keyby = by, .SDcols = rel_cols): Some items of .SDcols are not column names (or are NA)
+![](timing-relative_results-1.png)

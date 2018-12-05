@@ -7,6 +7,8 @@ output:
 ```{r, echo = FALSE}
 knitr::opts_chunk$set(
   error = TRUE,
+  cache = TRUE,
+  cache.vars = 'timings',
   fig.path = 'timing-'
 )
 ```
@@ -23,8 +25,8 @@ Here is a small set of timing exercises (note -- this may take several minutes t
 library(microbenchmark)
 library(data.table)
 
-nn = 10^(0:7)
-kk = 1:10
+nn = 10^(0:6)
+kk = 1:8
 timings = CJ(n_rows = nn, precision = kk)
 setkey(timings)
 ```
@@ -32,7 +34,7 @@ setkey(timings)
 
 ## Encoding geohashes
 
-```{r encoding, cache = TRUE}
+```{r encoding}
 set.seed(49843)
 # generate random points on the Earth's surface
 xx = runif(max(nn), -180, 180)
@@ -56,7 +58,7 @@ for (n in nn) {
 
 ## Decoding geohashes
 
-```{r decoding, cache = TRUE}
+```{r decoding}
 set.seed(459849)
 base32 = strsplit('0123456789bcdefghjkmnpqrstuvwxyz', NULL)[[1L]]
 
@@ -79,7 +81,7 @@ for (n in nn) {
 
 ## Finding geohash neighbors
 
-```{r neighbors, cache = TRUE}
+```{r neighbors}
 # re-use ggghhh from above
 for (n in nn) {
   gghh = ggghhh[1:n]
@@ -96,15 +98,18 @@ for (n in nn) {
 }
 ```
 
-```{r caching, cache = TRUE, results = 'hide', echo = FALSE}
-timings[]
-```
-
 # Results
 
 ## Absolute timing
 
-```{r absolute_results, results = 'hide'}
+```{r reset_dt, cache = FALSE, echo = FALSE, message = FALSE}
+library(data.table)
+setDT(timings)
+```
+
+
+```{r absolute_results, cache = FALSE, results = 'hide'}
+par(oma = c(0, 0, 2, 0))
 timings[ , {
   by = 'n_rows'
   xlab_map = c(n_rows = '# Rows', precision = 'Geohash Precision')
@@ -133,7 +138,8 @@ timings[ , {
 
 ## Comparison against `geohash`: Relative timing
 
-```{r relative_results, results = 'hide'}
+```{r relative_results, cache = FALSE, results = 'hide'}
+par(oma = c(0, 0, 2, 0))
 timings[ , {
   by = 'n_rows'
   xlab_map = c(n_rows = '# Rows', precision = 'Geohash Precision')
@@ -159,4 +165,3 @@ timings[ , {
   }
 }]
 ```
-
