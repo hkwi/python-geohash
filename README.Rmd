@@ -13,6 +13,8 @@ knitr::opts_chunk$set(
 
 # `geohashTools`
 
+[![codecov](http://codecov.io/github/MichaelChirico/geohashTools/coverage.svg?branch=master)](http://codecov.io/github/MichaelChirico/geohashTools?branch=master) [![travis](https://travis-ci.org/MichaelChirico/geohashTools.svg?branch=master)](https://travis-ci.org/MichaelChirico/geohashTools)
+
 This package provides tools for working with [Gustavo](https://github.com/niemeyer) [Niemeyer](https://twitter.com/gniemeyer)'s [geohash](https://en.wikipedia.org/wiki/Geohash) system of nestable, compact global coordinates based on [Z-order curves](https://en.wikipedia.org/wiki/Z-order_curve). The system consists of carving the earth into equally-sized rectangles (when projected into latitude/longitude space) and nesting this process recursively.
 
 The C++ source code is largely copied from [Hiroaki Kawai](https://github.com/hkwi)'s excellent implementation of geohash encoding/decoding (built with a [Python API](https://github.com/hkwi/python-geohash)), with minor top-level tweaks to match the [`Rcpp`](http://www.rcpp.org/) API to R.
