@@ -179,7 +179,7 @@ plot(chicago, lwd = .5, main = 'Public Art Locations in Chicago')
 plot(artSPDF, col = color_values(artSPDF$N, alpha = 192), add = TRUE)
 ```
 
-![](README-chicago_plot-1.png)
+<img src="README-chicago_plot-1.png" width="\textwidth" />
 
 Chicago connoisseurs will recognize the biggest concentration around Lincoln Park, with another concentration along the waterfront near Millenium/Grant Parks.
 
