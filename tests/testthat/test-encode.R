@@ -4,6 +4,23 @@ test_that('geohash encoder works', {
   y = 0.1234; x = 5.6789
   # test defaults on scalar input
   expect_equal(gh_encode(y, x), 's0h09n')
+  expect_equal(gh_encode(-y, -x), '7zgzqc')
+
+  # all level-1 centroids to be sure my manual logic for precision = 1 works
+  expect_equal(gh_encode(c(-67.5, -67.5, -22.5, -22.5, -67.5, -67.5, -22.5,
+                           -22.5, 22.5, 22.5, 67.5, 67.5, 22.5, 22.5, 67.5,
+                           67.5, -67.5, -67.5, -22.5, -22.5, -67.5, -67.5,
+                           -22.5, -22.5, 22.5, 22.5, 67.5, 67.5, 22.5, 22.5,
+                           67.5, 67.5),
+                         c(-157.5, -112.5, -157.5, -112.5, -67.5, -22.5,
+                           -67.5, -22.5, -157.5, -112.5, -157.5, -112.5,
+                           -67.5, -22.5, -67.5, -22.5, 22.5, 67.5, 22.5,
+                           67.5, 112.5, 157.5, 112.5, 157.5, 22.5, 67.5,
+                           22.5, 67.5, 112.5, 157.5, 112.5, 157.5),
+                         precision = 1L),
+               c("0", "1", "2", "3", "4", "3", "6", "7", "8", "9", "b", "c",
+                 "d", "e", "f", "g", "h", "j", "k", "m", "n", "p", "q", "r",
+                 "s", "t", "u", "v", "w", "x", "z", "z"))
 
   # geohash cells are _left closed, right open_: [x1, x2) x [y1, y2), see:
   #   http://geohash.org/s000
