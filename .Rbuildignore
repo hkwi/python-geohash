@@ -7,3 +7,6 @@
 
 # vignette-alike
 ^timing_comparison*
+
+# CI & codecov-related
+^\.travis\.yml$

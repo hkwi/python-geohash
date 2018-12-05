@@ -1,0 +1,35 @@
+# [borrowed and adjusted from data.table]
+# Travis configuration guide for R language:
+#   https://docs.travis-ci.com/user/languages/r/
+#   https://github.com/craigcitro/r-travis/wiki/Porting-to-native-R-support-in-Travis
+#
+language: r
+dist: trusty
+sudo: required
+cache: packages
+warnings_are_errors: true
+r_check_args: ""
+# empty r_check_args to turn off --as-cran (on by default) as that can be slow
+
+branches:
+  only:
+    - "master"
+
+r_packages:
+  - covr
+
+before_script:
+  - echo "Revision:" $TRAVIS_COMMIT >> ./DESCRIPTION
+
+after_success:
+  - travis_wait Rscript -e 'library(covr); codecov()'
+  - test $TRAVIS_REPO_SLUG == "MichaelChirico/geohashTools" && test $TRAVIS_PULL_REQUEST == "false" && test $TRAVIS_BRANCH == "master"
+
+notifications:
+  email:
+    on_success: change
+    on_failure: change
+
+env:
+  global:
+    - PKG_CFLAGS="-O3 -Wall -pedantic"
