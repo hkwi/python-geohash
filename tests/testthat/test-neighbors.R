@@ -47,4 +47,7 @@ test_that('geohash adjacency list works', {
                     southeast = "w0znzz", east = "w0zppb",
                     northeast = "w0zppc", north = "w0zpp9",
                     northwest = "w0zpp3", west = "w0zpp2"))
+
+  # edge cases: invalid input
+  expect_error(gh_neighbors('a'), 'Invalid geohash', fixed = TRUE)
 })

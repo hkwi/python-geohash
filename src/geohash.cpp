@@ -84,7 +84,7 @@ static inline void deinterleave(uint16_t interleaved, uint8_t *upper, uint8_t *l
  */
 static inline int double_to_i64(double in, uint64_t *out){
 	if(in<-1.0 || 1.0<=in){
-		return 0;
+	  stop("Internal error; out-of-range inputs should have been fixed already."); // # nocov
 	}
 	union {
 		double d; // assuming IEEE 754-1985 binary64. This might not be true on some CPU (I don't know which).
@@ -158,7 +158,7 @@ static inline void i64_to_double(uint64_t in, double *out){
 static int interleaved_to_geohashstr(uint16_t *interleaved, size_t length, char* dst, size_t dst_length){
 	static const char* map="0123456789bcdefghjkmnpqrstuvwxyz";
 	if(dst_length*5 < length*16){
-		return GEOHASH_INTERNALERROR;
+		return GEOHASH_INTERNALERROR; // # nocov
 	}
 
 	unsigned char *w = (unsigned char*)dst;
@@ -230,15 +230,6 @@ static int geohash_encode_impl(double latitude, double longitude, char* r){
 
 	memcpy(r, (const char*)lr, 27);
 	return GEOHASH_OK;
-}
-
-String geohash_encode(double latitude, double longitude, int precision){
-  char hashcode[28];
-
-  int ret = geohash_encode_impl(latitude, longitude, hashcode);
-  if (ret != GEOHASH_OK) stop("Failure code: %d", ret);
-
-	return (String) hashcode;
 }
 
 // Overhead not worth it for precision = 1, simple branching is faster
@@ -333,15 +324,7 @@ StringVector gh_encode_(NumericVector latitude, NumericVector longitude, int pre
         char hashcode[28];
         int ret = geohash_encode_impl(latitude[i], lon, hashcode);
         if (ret != GEOHASH_OK) {
-          switch (ret) {
-          case GEOHASH_NOTSUPPORTED:
-            stop("Unknown endian encountered; please report your use case.");
-          case GEOHASH_INVALIDCODE:
-            stop("Invalid geohash; check '%s' at index %d.\nValid characters: [0123456789bcdefghjkmnpqrstuvwxyz]",
-                 (std::string) geohashes[i], i + 1);
-          default:
-            stop("Internal error; please report your use case.");
-          }
+          stop("Internal error, code %d; please report your use case.", ret); // # nocov
         }
 
         geohashes[i] = ((std::string) hashcode).substr(0, precision);
@@ -396,7 +379,7 @@ static int geohashstr_to_interleaved(char* r, size_t length, uint16_t *interleav
 		}
 	}
 	if(dst_count*16 < length*5){
-		return GEOHASH_INTERNALERROR;
+		return GEOHASH_INTERNALERROR; // # nocov
 	}
 	for(unsigned int j=0; j<dst_count; j++){
 		interleaved[j]=0;
@@ -446,7 +429,7 @@ static int geohash_decode_impl(char* r, size_t length, double *latitude, double 
 	if(intr_length > 8){
 		interleaved = (uint16_t*)malloc(sizeof(uint16_t)*intr_length);
 		if(!interleaved){
-			return GEOHASH_NOMEMORY;
+			return GEOHASH_NOMEMORY; // # nocov
 		}
 		intr_free = 1;
 	}else{
@@ -564,7 +547,7 @@ List gh_decode_(StringVector geohashes, bool include_delta, int coord_loc) {
           stop("Invalid geohash; check '%s' at index %d.\nValid characters: [0123456789bcdefghjkmnpqrstuvwxyz]",
                (std::string) geohashes[i], i + 1);
         default:
-          stop("Internal error; please report your use case.");
+          stop("Internal error; please report your use case."); // # nocov
         }
       }
     }
@@ -643,11 +626,11 @@ static int neighbors(uint16_t *interleaved, size_t bitlength, uint16_t* dst, siz
 		interleaved_length++;
 	}
 	if(dst_length<interleaved_length*8){
-		return GEOHASH_INTERNALERROR;
+		return GEOHASH_INTERNALERROR; // # nocov
 	}
 	uint8_t *latlons = (uint8_t*)malloc(sizeof(uint8_t)*interleaved_length*6);
 	if(latlons==NULL){
-		return GEOHASH_NOMEMORY;
+		return GEOHASH_NOMEMORY; // # nocov
 	}
 	uint8_t *lat_8s = latlons;
 	uint8_t *lon_8s = latlons + interleaved_length*3;
@@ -716,7 +699,7 @@ static int geo_neighbors_impl(char *hashcode, char* dst, size_t dst_length, int 
 
 	uint16_t *interleaved = (uint16_t*)malloc(sizeof(uint16_t) * interleaved_length * 9);
 	if(interleaved==NULL){
-		return GEOHASH_NOMEMORY;
+		return GEOHASH_NOMEMORY; // # nocov
 	}
 	if((ret=geohashstr_to_interleaved(hashcode, hashcode_length, interleaved, interleaved_length)) != GEOHASH_OK){
 		free(interleaved);
@@ -736,7 +719,7 @@ static int geo_neighbors_impl(char *hashcode, char* dst, size_t dst_length, int 
 	char *buffer = (char*)malloc(sizeof(char)*blen);
 	if(buffer==NULL){
 		free(interleaved);
-		return GEOHASH_NOMEMORY;
+		return GEOHASH_NOMEMORY; // # nocov
 	}
 
 	for(unsigned int i=0; i<dst_count; i++){
@@ -756,9 +739,6 @@ static int geo_neighbors_impl(char *hashcode, char* dst, size_t dst_length, int 
 	}
 
 	return GEOHASH_OK;
-}
-int geo_neighbors(char *hashcode, char* dst, size_t dst_length, int *string_count){
-	return geo_neighbors_impl(hashcode, dst, dst_length, string_count);
 }
 
 // [[Rcpp::export]]
@@ -780,7 +760,7 @@ List gh_neighbors_(StringVector geohashes, bool self = true) {
 
     char *buffer = (char*) malloc(sizeof(char)* buffer_sz);
     if(buffer == NULL){
-      stop("Out of memory.");
+      stop("Out of memory."); // # nocov
     }
 
     int ret;
@@ -793,7 +773,7 @@ List gh_neighbors_(StringVector geohashes, bool self = true) {
         stop("Invalid geohash; check '%s' at index %d.\nValid characters: [0123456789bcdefghjkmnpqrstuvwxyz]",
              (std::string) geohashes[i], i + 1);
       default:
-        stop("Internal error; please report your use case.");
+        stop("Internal error; please report your use case."); // # nocov
       }
     }
     // "border" geohashes  should abut the north/south pole
@@ -832,7 +812,7 @@ List gh_neighbors_(StringVector geohashes, bool self = true) {
         northeast[i] = buffer + 4*blen;
         break;
       default:
-        stop("Internal error. Please report.");
+        stop("Internal error. Please report."); // # nocov
       }
     } else if (string_count == 8) {
       west[i] = buffer;
@@ -843,7 +823,7 @@ List gh_neighbors_(StringVector geohashes, bool self = true) {
       north[i] = buffer + 5*blen;
       northwest[i] = buffer + 6*blen;
       northeast[i] = buffer + 7*blen;
-    } else stop("Internal error. Please report.");
+    } else stop("Internal error. Please report."); // # nocov
   }
   if (self) {
     return List::create(
