@@ -9,3 +9,6 @@
 *.o
 *.so
 *.dll
+
+# .Rmd cache
+*_cache
