@@ -94,7 +94,7 @@ gh_neighbors('w4urs5pc')
 
 Returning to public art locations in Chicago, we can visualize the spatial aggregations carried out above by converting to `sp`, combining with a shapefile of Chicago, and plotting:
 
-```{r chicago_plot, message = FALSE, results = 'hide'}
+```{r chicago_plot, message = FALSE, results = 'hide', fig.width = 8, fig.height = 8}
 # needed for plotting
 library(sp)
 # needed to load neighborhoods shapefile
