@@ -232,19 +232,13 @@ static int geohash_encode_impl(double latitude, double longitude, char* r){
 	return GEOHASH_OK;
 }
 
-std::string geohash_encode(double latitude, double longitude, int precision){
+String geohash_encode(double latitude, double longitude, int precision){
   char hashcode[28];
 
   int ret = geohash_encode_impl(latitude, longitude, hashcode);
-  if (ret != GEOHASH_OK) stop("Failure %d", ret);
+  if (ret != GEOHASH_OK) stop("Failure code: %d", ret);
 
-  std::string gh_string;
-
-  for (int i = 0; i < precision; i++) {
-    gh_string[i] = hashcode[i];
-  }
-
-	return gh_string;
+	return (String) hashcode;
 }
 
 // Overhead not worth it for precision = 1, simple branching is faster
@@ -319,8 +313,12 @@ StringVector gh_encode_(NumericVector latitude, NumericVector longitude, int pre
 
   StringVector geohashes(n);
 
+  double lon;
+
   if (precision > 1) {
+
     for(int i = 0; i < n; i++) {
+
       if (R_IsNA(latitude[i]) || R_IsNA(longitude[i])) {
         geohashes[i] = NA_STRING;
       } else {
@@ -328,9 +326,25 @@ StringVector gh_encode_(NumericVector latitude, NumericVector longitude, int pre
           stop("Invalid latitude at index %d; must be in [-90, 90)", i + 1);
         }
         if (longitude[i] < -180 || longitude[i] >= 180) {
-          longitude[i] = std::fmod(longitude[i] + 180, 360) - 180;
+          lon = std::fmod(longitude[i] + 180, 360) - 180;
+        } else lon = longitude[i];
+
+
+        char hashcode[28];
+        int ret = geohash_encode_impl(latitude[i], lon, hashcode);
+        if (ret != GEOHASH_OK) {
+          switch (ret) {
+          case GEOHASH_NOTSUPPORTED:
+            stop("Unknown endian encountered; please report your use case.");
+          case GEOHASH_INVALIDCODE:
+            stop("Invalid geohash; check '%s' at index %d.\nValid characters: [0123456789bcdefghjkmnpqrstuvwxyz]",
+                 (std::string) geohashes[i], i + 1);
+          default:
+            stop("Internal error; please report your use case.");
+          }
         }
-        geohashes[i] = geohash_encode(latitude[i], longitude[i], precision);
+
+        geohashes[i] = ((std::string) hashcode).substr(0, precision);
       }
     }
   } else {
@@ -342,9 +356,9 @@ StringVector gh_encode_(NumericVector latitude, NumericVector longitude, int pre
           stop("Invalid latitude at index %d; must be in [-90, 90)", i + 1);
         }
         if (longitude[i] < -180 || longitude[i] >= 180) {
-          longitude[i] = std::fmod(longitude[i] + 180, 360) - 180;
-        }
-        geohashes[i] = geohash_encode1(latitude[i], longitude[i]);
+          lon = std::fmod(longitude[i] + 180, 360) - 180;
+        } else lon = longitude[i];
+        geohashes[i] = geohash_encode1(latitude[i], lon);
       }
     }
   }
