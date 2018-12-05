@@ -34,6 +34,37 @@ test_that('geohash decoder works', {
   # option: coord_loc
   expect_equal(gh_decode(borobudur, coord_loc = 'se'),
                list(latitude = -7.6080322265625, longitude = 110.203857421875))
+  expect_equal(gh_decode(borobudur, coord_loc = 'southeast'),
+               list(latitude = -7.6080322265625, longitude = 110.203857421875))
+  expect_equal(gh_decode(borobudur, coord_loc = 's'),
+               list(latitude = -7.6080322265625, longitude = 110.198364257812))
+  expect_equal(gh_decode(borobudur, coord_loc = 'south'),
+               list(latitude = -7.6080322265625, longitude = 110.198364257812))
+  expect_equal(gh_decode(borobudur, coord_loc = 'sw'),
+               list(latitude = -7.6080322265625, longitude = 110.19287109375))
+  expect_equal(gh_decode(borobudur, coord_loc = 'southwest'),
+               list(latitude = -7.6080322265625, longitude = 110.19287109375))
+  expect_equal(gh_decode(borobudur, coord_loc = 'w'),
+               list(latitude = -7.60528564453125, longitude = 110.19287109375))
+  expect_equal(gh_decode(borobudur, coord_loc = 'west'),
+               list(latitude = -7.60528564453125, longitude = 110.19287109375))
+  expect_equal(gh_decode(borobudur, coord_loc = 'nw'),
+               list(latitude = -7.6025390625, longitude = 110.19287109375))
+  expect_equal(gh_decode(borobudur, coord_loc = 'northwest'),
+               list(latitude = -7.6025390625, longitude = 110.19287109375))
+  expect_equal(gh_decode(borobudur, coord_loc = 'n'),
+               list(latitude = -7.6025390625, longitude = 110.198364257812))
+  expect_equal(gh_decode(borobudur, coord_loc = 'north'),
+               list(latitude = -7.6025390625, longitude = 110.198364257812))
+  expect_equal(gh_decode(borobudur, coord_loc = 'ne'),
+               list(latitude = -7.6025390625, longitude = 110.203857421875))
+  expect_equal(gh_decode(borobudur, coord_loc = 'northeast'),
+               list(latitude = -7.6025390625, longitude = 110.203857421875))
+  expect_equal(gh_decode(borobudur, coord_loc = 'e'),
+               list(latitude = -7.60528564453125, longitude = 110.203857421875))
+  expect_equal(gh_decode(borobudur, coord_loc = 'east'),
+               list(latitude = -7.60528564453125, longitude = 110.203857421875))
+
   expect_error(gh_decode(c(borobudur, neum), coord_loc = c('n', 's')),
                'Please provide only one value', fixed = TRUE)
   expect_error(gh_decode(akarenga, coord_loc = 'yo'),
@@ -55,4 +86,7 @@ test_that('geohash decoder works', {
                     delta_latitude = c(0.02197265625, NA),
                     delta_longitude = c(0.02197265625, NA)))
 
+  # empty input
+  expect_equal(gh_decode(character(0L)),
+               list(latitude = numeric(0L), longitude = numeric(0L)))
 })
