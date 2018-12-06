@@ -5,9 +5,10 @@ gh_encode = function(latitude, longitude, precision = 6L) {
     stop("More than one precision value detected; precision is fixed on input (for now)")
   if (precision < 1L) stop('Invalid precision. Precision is measured in ',
                            'characters, must be at least 1.')
-  if (precision > 26L) {
-    warning('Precision is limited to 26 characters (at the nanometer scale); truncating')
-    precision = 26L
+  if (precision > .global$GH_MAX_PRECISION) {
+    warning('Precision is limited to ', .global$GH_MAX_PRECISION,
+            ' characters; truncating')
+    precision = .global$GH_MAX_PRECISION
   }
 
   gh_encode_(latitude, longitude, as.integer(precision))
