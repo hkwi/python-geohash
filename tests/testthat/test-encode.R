@@ -29,11 +29,14 @@ test_that('geohash encoder works', {
   # test precision argument
   expect_equal(gh_encode(y, x, 12L), 's0h09nrnzgqv')
   # maximum precision
-  expect_equal(gh_encode(y, x, 26L), 's0h09nrnzgqv8je0f4jp6njn00')
+  n = as.integer(ceiling(.4*(log2(180) - log2(.Machine$double.eps)) + c(0, .2)))
+  n = if (length(unique(n)) == 1L || n[1L] %% 2L) n[1L] else n[2L]
+  expect_equal(gh_encode(y, x, n),
+               substring('s0h09nrnzgqv8je0f4jp6njn00', 1L, n))
   # truncation beyond there
   expect_warning(out <- gh_encode(y, x, 27L),
                  'Precision is limited', fixed = TRUE)
-  expect_equal(out, 's0h09nrnzgqv8je0f4jp6njn00')
+  expect_equal(out, substring('s0h09nrnzgqv8je0f4jp6njn00', 1L, n))
 
   # implicit integer truncation
   expect_equal(gh_encode(y, x, 1.04), 's')

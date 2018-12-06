@@ -327,7 +327,7 @@ StringVector gh_encode_(NumericVector latitude, NumericVector longitude, int pre
           stop("Internal error, code %d; please report your use case.", ret); // # nocov
         }
 
-        geohashes[i] = ((std::string) hashcode).substr(0, precision);
+        geohashes[i] = ((std::string) hashcode).erase(precision);
       }
     }
   } else {
