@@ -1,4 +1,5 @@
 #Internal globals
+# nocov start
 .global = new.env(parent = emptyenv())
 setPackageName("geohashTools", .global)
 
@@ -8,3 +9,4 @@ setPackageName("geohashTools", .global)
   .global$GH_MAX_PRECISION =
     if (length(unique(n)) == 1L || n[1L] %% 2L) n[1L] else n[2L]
 }
+# nocov end
