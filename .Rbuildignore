@@ -10,3 +10,5 @@
 
 # CI & codecov-related
 ^\.travis\.yml$
+
+^logo_maker.R$
