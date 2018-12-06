@@ -65,6 +65,12 @@ test_that('geohash decoder works', {
   expect_equal(gh_decode(borobudur, coord_loc = 'east'),
                list(latitude = -7.60528564453125, longitude = 110.203857421875))
 
+  # be sure adjacent geohashes interlock
+  expect_equal(lapply(c('nw', 'n', 'ne'),
+                      function(l) gh_decode('m', coord_loc = l)),
+               lapply(c('sw', 's', 'se'),
+                      function(l) gh_decode('t', coord_loc = l)))
+
   expect_error(gh_decode(c(borobudur, neum), coord_loc = c('n', 's')),
                'Please provide only one value', fixed = TRUE)
   expect_error(gh_decode(akarenga, coord_loc = 'yo'),
