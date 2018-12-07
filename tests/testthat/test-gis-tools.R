@@ -21,17 +21,15 @@ test_that('gh_to_sp works', {
                  sp::CRS("+init=epsg:4326"))
   }
 
-  # simulate missing sp
-  ## TODO: actually get this working
-  # requireNamespace = function(...) FALSE
-  # expect_error(eval(gh_to_sp(mauritius), envir = env),
-  #              'requires an installation of sp', fixed = TRUE)
-  # rm(requireNamespace)
-
   # duplicate inputs dropped
   expect_warning(ghSP2 <- gh_to_sp(rep(mauritius, 2L)),
                  'duplicate input geohashes', fixed = TRUE)
   expect_equal(ghSP, ghSP2)
+
+  # simulate missing sp
+  stub(gh_to_sp, 'requireNamespace', FALSE)
+  expect_error(gh_to_sp(mauritius),
+               'requires an installation of sp', fixed = TRUE)
 })
 
 test_that('gh_to_spdf.default works', {
@@ -57,11 +55,9 @@ test_that('gh_to_spdf.default works', {
   expect_equal(ghSPDF@data, data.frame(ID = 1:9, row.names = urumqi))
 
   # simulate missing sp
-  # TODO: actually get this working
-  # requireNamespace = function(...) FALSE
-  # expect_error(gh_to_spdf(urumqi),
-  #              'requires an installation of sp', fixed = TRUE)
-  # rm(requireNamespace)
+  stub(gh_to_spdf, 'requireNamespace', FALSE)
+  expect_error(gh_to_spdf(urumqi),
+               'requires an installation of sp', fixed = TRUE)
 })
 
 test_that('gh_to_spdf.data.frame works', {
@@ -116,4 +112,9 @@ test_that('gh_to_sf works', {
                         49.8779296875, 49.833984375, 40.3857421875,
                         40.4296875, 40.4296875, 40.3857421875, 40.3857421875),
                       nrow = 5L, ncol = 2L))
+
+  # simulate missing sf
+  stub(gh_to_sf, 'requireNamespace', FALSE)
+  expect_error(gh_to_sf(urumqi),
+               'requires an installation of sf', fixed = TRUE)
 })

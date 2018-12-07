@@ -8,5 +8,5 @@ Description: Tools for working with Gustavo Niemeyer's geohash coordinate system
 URL: https://github.com/MichaelChirico/geohashTools
 License: MIT + file LICENSE
 Imports: Rcpp (>= 1.0.0)
-Suggests: sf, sp, testthat
+Suggests: sf, sp, testthat, mockery
 LinkingTo: Rcpp
