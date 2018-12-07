@@ -4,6 +4,7 @@
 .Ruserdata
 
 *.tar.gz
+*Rcheck
 
  #objects, shared objects, DLLs
 *.o

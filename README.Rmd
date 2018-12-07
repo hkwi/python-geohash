@@ -9,7 +9,7 @@ knitr::opts_chunk$set(
   error = TRUE,
   fig.path = 'README-'
   # for CRAN release
-  # , eval = FALSE
+  , eval = FALSE
 )
 ```
 
