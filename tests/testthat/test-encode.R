@@ -26,6 +26,19 @@ test_that('geohash encoder works', {
   #   http://geohash.org/s000
   expect_equal(gh_encode(0, 0, 1L), 's')
 
+  # boundary cases
+  eps = .Machine$double.eps
+  expect_equal(gh_encode(c(eps, eps, -eps, -eps,
+                           # need to balloon eps to get it close enough
+                           #   in significant digits to 90...
+                           90 - 100*eps, 90 - 100*eps,
+                           100*eps - 90, 100*eps - 90),
+                         c(eps, -eps, eps, -eps,
+                           eps - 180, 180 - eps,
+                           eps - 180, 180 - eps)),
+               c("s00000", "ebpbpb", "kpbpbp", "7zzzzz",
+                 "bpbpbp", "bpbpbp", "000000", "000000"))
+
   # test precision argument
   expect_equal(gh_encode(y, x, 12L), 's0h09nrnzgqv')
   # maximum precision
