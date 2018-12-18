@@ -2,6 +2,8 @@
 `geohashTools`
 ==============
 
+![logo](logo.png "geohashTools") [![codecov](http://codecov.io/github/MichaelChirico/geohashTools/coverage.svg?branch=master)](http://codecov.io/github/MichaelChirico/geohashTools?branch=master) [![travis](https://travis-ci.org/MichaelChirico/geohashTools.svg?branch=master)](https://travis-ci.org/MichaelChirico/geohashTools) [![cran\_chk](https://cranchecks.info/badges/flavor/release/geohashTools)](https://cran.r-project.org/web/checks/check_results_geohashTools.html)
+
 This package provides tools for working with [Gustavo](https://github.com/niemeyer) [Niemeyer](https://twitter.com/gniemeyer)'s [geohash](https://en.wikipedia.org/wiki/Geohash) system of nestable, compact global coordinates based on [Z-order curves](https://en.wikipedia.org/wiki/Z-order_curve). The system consists of carving the earth into equally-sized rectangles (when projected into latitude/longitude space) and nesting this process recursively.
 
 The C++ source code is largely copied from [Hiroaki Kawai](https://github.com/hkwi)'s excellent implementation of geohash encoding/decoding (built with a [Python API](https://github.com/hkwi/python-geohash)), with minor top-level tweaks to match the [`Rcpp`](http://www.rcpp.org/) API to R.
@@ -16,6 +18,8 @@ library(geohashTools)
 gh_encode(11.3113917, -74.0779006)
 ```
 
+    ## [1] "d65267"
+
 These 6 characters identify this point on the globe to within 1.2 kilometers (east-west) and .6 kilometers (north-south).
 
 The park is quite large, and this is too precise to cover the park; we can "zoom out" by reducing the precision (which is the number of characters in the output, `6` by default):
@@ -23,6 +27,8 @@ The park is quite large, and this is too precise to cover the park; we can "zoom
 ``` r
 gh_encode(11.3113917, -74.0779006, precision = 5L)
 ```
+
+    ## [1] "d6526"
 
 ### Public Art in Chicago
 
@@ -44,6 +50,18 @@ art[ , .N, by = .(geohash = gh_encode(LATITUDE, LONGITUDE, 5L))
      ][order(-N)][1:10]
 ```
 
+    ##     geohash  N
+    ##  1:   dp3wm 46
+    ##  2:   dp3wn 42
+    ##  3:   dp3wt 16
+    ##  4:   dp3wq 13
+    ##  5:   dp3wk 10
+    ##  6:   dp3wj  9
+    ##  7:   dp3ty  9
+    ##  8:   dp3w7  8
+    ##  9:   dp3tw  6
+    ## 10:   dp3tv  4
+
 This is pretty impractical *per se* (where is `dp3wm`?); we'll return to this once we've introduced more functionality.
 
 Decoding geohashes
@@ -55,17 +73,37 @@ The reverse of encoding geohashes is of course decoding them -- taking a given g
 gh_decode('sc54v')
 ```
 
+    ## $latitude
+    ## [1] 6.130371
+    ## 
+    ## $longitude
+    ## [1] 38.21045
+
 It can also be helpful to know just how precisely we've identified these coordinates; the `include_delta` argument gives the cell half-widths in both directions in addition to the cell centroid:
 
 ``` r
 gh_decode('sc54v', include_delta = TRUE)
 ```
 
+    ## $latitude
+    ## [1] 6.130371
+    ## 
+    ## $longitude
+    ## [1] 38.21045
+    ## 
+    ## $delta_latitude
+    ## [1] 0.02197266
+    ## 
+    ## $delta_longitude
+    ## [1] 0.02197266
+
 In terms of latitude and longitude, all geohashes with the same precision have the same dimensions (though the physical size of the "rectangle" changes depending on the latitude); as such it's easy to figure out thecell half-widths from the precision alone using `gh_delta`:
 
 ``` r
 gh_delta(5L)
 ```
+
+    ## [1] 0.02197266 0.02197266
 
 Geohash neighborhoods
 ---------------------
@@ -79,6 +117,33 @@ For example, Aung San Suu Kyi's childhood home is roughly at `w4urs5pc`, but thi
 ``` r
 gh_neighbors('w4urs5pc')
 ```
+
+    ## $self
+    ## [1] "w4urs5pc"
+    ## 
+    ## $southwest
+    ## [1] "w4urs5p8"
+    ## 
+    ## $south
+    ## [1] "w4urs5pb"
+    ## 
+    ## $southeast
+    ## [1] "w4urs700"
+    ## 
+    ## $east
+    ## [1] "w4urs701"
+    ## 
+    ## $northeast
+    ## [1] "w4urs704"
+    ## 
+    ## $north
+    ## [1] "w4urs5pf"
+    ## 
+    ## $northwest
+    ## [1] "w4urs5pd"
+    ## 
+    ## $west
+    ## [1] "w4urs5p9"
 
 API to other GIS tools in R
 ---------------------------
@@ -115,6 +180,8 @@ artSPDF = gh_to_spdf(
 plot(chicago, lwd = .5, main = 'Public Art Locations in Chicago')
 plot(artSPDF, col = color_values(artSPDF$N, alpha = 192), add = TRUE)
 ```
+
+<img src="README-chicago_plot-1.png" width="\textwidth" />
 
 Chicago connoisseurs will recognize the biggest concentration around Lincoln Park, with another concentration along the waterfront near Millenium/Grant Parks.
 
