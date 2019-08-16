@@ -437,6 +437,7 @@ static int geohash_decode_impl(char* r, size_t length, double *latitude, double 
 	}
 	int ret = GEOHASH_OK;
 	if((ret=geohashstr_to_interleaved(r, length, interleaved, intr_length)) != GEOHASH_OK){
+	  if (intr_free) free(interleaved);
 		return ret;
 	}
 	uint64_t lat64=0;
@@ -766,6 +767,7 @@ List gh_neighbors_(StringVector geohashes, bool self = true) {
     int ret;
     int string_count = 0;
     if((ret = geo_neighbors_impl(geohashes[i], buffer, buffer_sz, &string_count)) != GEOHASH_OK){
+      free(buffer);
       switch (ret) {
       case GEOHASH_NOTSUPPORTED:
         stop("Unknown endian encountered; please report your use case.");
@@ -811,8 +813,10 @@ List gh_neighbors_(StringVector geohashes, bool self = true) {
         northwest[i] = buffer + 3*blen;
         northeast[i] = buffer + 4*blen;
         break;
-      default:
+      default: {
+        free(buffer);
         stop("Internal error. Please report."); // # nocov
+      }
       }
     } else if (string_count == 8) {
       west[i] = buffer;
@@ -823,7 +827,11 @@ List gh_neighbors_(StringVector geohashes, bool self = true) {
       north[i] = buffer + 5*blen;
       northwest[i] = buffer + 6*blen;
       northeast[i] = buffer + 7*blen;
-    } else stop("Internal error. Please report."); // # nocov
+    } else {
+      free(buffer);
+      stop("Internal error. Please report."); // # nocov
+    }
+    free(buffer);
   }
   if (self) {
     return List::create(
