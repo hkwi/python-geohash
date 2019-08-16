@@ -77,8 +77,8 @@ test_that('geohash encoder works', {
   # different branch for precision=1 of the above errors
   expect_error(gh_encode(100, x, 1L),
                'Invalid latitude at index 1', fixed = TRUE)
-  expect_error(gh_encode(y, 180, 1L), '8')
-  expect_error(gh_encode(NA, NA, 1L), NA_character_)
+  expect_equal(gh_encode(y, 180, 1L), '8')
+  expect_equal(gh_encode(NA, NA, 1L), NA_character_)
 
   # stress testing
   expect_equal(gh_encode(numeric(), numeric()), character())
