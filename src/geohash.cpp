@@ -330,6 +330,7 @@ static int geohash_decode_impl(char* r, size_t length, double *latitude, double 
 	}
 	int ret = GEOHASH_OK;
 	if((ret=geohashstr_to_interleaved(r, length, interleaved, intr_length)) != GEOHASH_OK){
+		if (intr_free) free(interleaved);
 		return ret;
 	}
 	uint64_t lat64=0;
@@ -591,6 +592,7 @@ static PyObject *py_geohash_neighbors(PyObject *self, PyObject *args) {
 	int ret;
 	int string_count = 0;
 	if((ret = geo_neighbors_impl(hashcode, buffer, buffer_sz, &string_count)) != GEOHASH_OK){
+		free(buffer);
 		set_error(ret);
 	}
 	
@@ -606,6 +608,7 @@ static PyObject *py_geohash_neighbors(PyObject *self, PyObject *args) {
 		obj= Py_BuildValue("[ssssssss]", buffer, buffer+blen, buffer+blen*2, buffer+blen*3,
 			buffer+blen*4, buffer+blen*5, buffer+blen*6, buffer+blen*7);
 	}else{
+		free(buffer);
 		set_error(GEOHASH_INTERNALERROR);
 	}
 	free(buffer);
