@@ -1,8 +1,12 @@
 # `geohashTools` NEWS
 
-## NEW FEATURES
+## v0.2.2
 
-## BUG FIXES
+### NEW FEATURES
+
+ 1. `gh_covering` for generating a covering of an input polygon in geohashes, [#7](https://github.com/MichaelChirico/geohashTools/issues/7).
+
+### BUG FIXES
 
  1. CRAN submission detected some memory issues in the C++ code which have now hopefully been fixed in [#12](https://github.com/MichaelChirico/geohashTools/pull/12)
  

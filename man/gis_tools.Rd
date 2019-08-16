@@ -4,6 +4,7 @@
 \alias{gh_to_spdf.default}
 \alias{gh_to_spdf.data.frame}
 \alias{gh_to_sf}
+\alias{gh_covering}
 
 \title{ Helpers for interfacing geohashes with sp/sf objects }
 \description{
@@ -14,6 +15,8 @@ gh_to_sp(geohashes)
 gh_to_spdf(\dots)
 gh_to_sf(\dots)
 
+gh_covering(SP, precision = 6L, minimal = FALSE)
+
 \method{gh_to_spdf}{default}(geohashes, \dots)
 
 \method{gh_to_spdf}{data.frame}(gh_df, gh_col = 'gh', \dots)
@@ -22,6 +25,9 @@ gh_to_sf(\dots)
 \arguments{
   \item{geohashes}{ \code{character} vector of geohashes to be converted to polygons. }
   \item{\dots}{ Arguments for subsequent methods. }
+  \item{SP}{ A \code{\link[sp]{Spatial}} object (requires \code{bbox} and \code{proj4string} methods, and \code{over} if \code{minimal} is \code{TRUE})}
+  \item{precision}{ \code{integer} specifying the precision of geohashes to use, same as \code{\link{gh_encode}} }
+  \item{minimal}{ \code{logical}; if \code{FALSE}, the output will have all geohashes in the bounding box of \code{SP}; if \code{TRUE}, any geohashes not intersecting \code{SP} will be removed. }
   \item{gh_df}{ \code{data.frame} which 1) contains a column of geohashes to be converted to polygons and 2) will serve as the \code{data} slot of the resultant \code{\link[sp]{SpatialPolygonsDataFrame}} object. }
   \item{gh_col}{ \code{character} column name saying where the geohashes are stored in \code{gh_df}. }
 }
@@ -45,6 +51,9 @@ gh_to_sf(\dots)
   downtown = '2jtc5x'
   apia_nbhd = unlist(gh_neighbors(downtown))
   apia_sp = gh_to_sp(apia_nbhd)
+
+  # all geohashes covering a random sampling within Apia:
+  apia_covering = gh_covering(smp <- sp::spsample(apia_sp, 10L, 'random'))
 
   apia_sf = gh_to_sf(apia_nbhd)
 }

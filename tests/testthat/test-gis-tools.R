@@ -25,11 +25,6 @@ test_that('gh_to_sp works', {
   expect_warning(ghSP2 <- gh_to_sp(rep(mauritius, 2L)),
                  'duplicate input geohashes', fixed = TRUE)
   expect_equal(ghSP, ghSP2)
-
-  # simulate missing sp
-  stub(gh_to_sp, 'requireNamespace', FALSE)
-  expect_error(gh_to_sp(mauritius),
-               'requires an installation of sp', fixed = TRUE)
 })
 
 test_that('gh_to_spdf.default works', {
@@ -58,11 +53,6 @@ test_that('gh_to_spdf.default works', {
   expect_warning(ghSPDF2 <- gh_to_spdf(rep(urumqi, 2L)),
                  'Detected 9 duplicate input geohashes; removing', fixed = TRUE)
   expect_equal(ghSPDF2@data, DF)
-
-  # simulate missing sp
-  stub(gh_to_spdf, 'requireNamespace', FALSE)
-  expect_error(gh_to_spdf(urumqi),
-               'requires an installation of sp', fixed = TRUE)
 })
 
 test_that('gh_to_spdf.data.frame works', {
@@ -122,9 +112,34 @@ test_that('gh_to_sf works', {
                         49.8779296875, 49.833984375, 40.3857421875,
                         40.4296875, 40.4296875, 40.3857421875, 40.3857421875),
                       nrow = 5L, ncol = 2L))
+})
 
-  # simulate missing sf
-  stub(gh_to_sf, 'requireNamespace', FALSE)
-  expect_error(gh_to_sf(urumqi),
-               'requires an installation of sf', fixed = TRUE)
+test_that('gh_covering works', {
+  banjarmasin = sp::SpatialPoints(cbind(
+    c(114.605, 114.5716, 114.627, 114.5922, 114.6321,
+      114.5804, 114.6046, 114.6028, 114.6232, 114.5792),
+    c(-3.3346, -3.2746, -3.2948, -3.3424, -3.3523,
+      -3.3304, -3.3005, -3.3141, -3.326, -3.3552)
+  ))
+
+  # core
+  banjarmasin_cover = gh_covering(banjarmasin)
+  sp::proj4string(banjarmasin) = sp::CRS("+init=epsg:4326")
+  # use gUnaryUnion to overcome rgeos bug as reported 2019-08-16
+  expect_true(!any(is.na(sp::over(banjarmasin, banjarmasin_cover))))
+  expect_equal(sort(rownames(banjarmasin_cover@data))[1:10],
+               c("qx3kzj", "qx3kzm", "qx3kzn", "qx3kzp", "qx3kzq",
+                 "qx3kzr", "qx3kzt", "qx3kzv", "qx3kzw", "qx3kzx"))
+  expect_length(banjarmasin_cover, 112L)
+
+  # arguments
+  expect_length(gh_covering(banjarmasin, 5L), 9L)
+  banjarmasin_tight = gh_covering(banjarmasin, minimal = TRUE)
+  expect_equal(sort(rownames(banjarmasin_tight@data))[1:10],
+               c("qx3kzm", "qx3kzx", "qx3mp3", "qx3mpb", "qx3mpu",
+                 "qx3mpz", "qx3mr5", "qx3sbt", "qx3t06", "qx3t22"))
+  expect_length(banjarmasin_tight, 10L)
+
+  # errors
+  expect_error(gh_covering(4L), 'Object to cover must be Spatial', fixed = TRUE)
 })
