@@ -9,4 +9,6 @@ export(gh_to_sp, gh_to_spdf, gh_to_sf)
 S3method(gh_to_spdf, default)
 S3method(gh_to_spdf, data.frame)
 
+export(gh_covering)
+
 export(gh_delta)
