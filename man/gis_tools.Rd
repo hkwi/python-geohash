@@ -53,6 +53,7 @@ gh_covering(SP, precision = 6L, minimal = FALSE)
   apia_sp = gh_to_sp(apia_nbhd)
 
   # all geohashes covering a random sampling within Apia:
+  library(rgeos)
   apia_covering = gh_covering(smp <- sp::spsample(apia_sp, 10L, 'random'))
 
   apia_sf = gh_to_sf(apia_nbhd)
