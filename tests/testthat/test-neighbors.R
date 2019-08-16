@@ -50,4 +50,9 @@ test_that('geohash adjacency list works', {
 
   # edge cases: invalid input
   expect_error(gh_neighbors('a'), 'Invalid geohash', fixed = TRUE)
+  expect_equal(gh_neighbors(''),
+               list(self='', southwest=NA_character_, south=NA_character_,
+                    southeast=NA_character_, east=NA_character_,
+                    northeast=NA_character_, north=NA_character_,
+                    northwest=NA_character_, west=NA_character_))
 })
