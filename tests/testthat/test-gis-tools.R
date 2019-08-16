@@ -52,7 +52,12 @@ test_that('gh_to_spdf.default works', {
     expect_equal(ghSPDF@proj4string,
                  sp::CRS("+init=epsg:4326"))
   }
-  expect_equal(ghSPDF@data, data.frame(ID = 1:9, row.names = urumqi))
+  DF = data.frame(ID = 1:9, row.names = urumqi)
+  expect_equal(ghSPDF@data, DF)
+  # check also duplicated input (#11)
+  expect_warning(ghSPDF2 <- gh_to_spdf(rep(urumqi, 2L)),
+                 'Detected 9 duplicate input geohashes; removing', fixed = TRUE)
+  expect_equal(ghSPDF2@data, DF)
 
   # simulate missing sp
   stub(gh_to_spdf, 'requireNamespace', FALSE)
@@ -84,6 +89,11 @@ test_that('gh_to_spdf.data.frame works', {
                  sp::CRS("+init=epsg:4326"))
   }
   expect_equal(ghSPDF@data, DF)
+
+  # duplicated inputs (#11)
+  expect_warning(ghSPDF2 <- gh_to_spdf(rbind(DF, DF)),
+                 'Detected 9 duplicate input geohashes; removing', fixed = TRUE)
+  expect_equal(ghSPDF2@data, DF)
 
   # different gh_col
   names(DF) = c('geohash', 'V')

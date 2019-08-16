@@ -32,6 +32,11 @@ gh_to_spdf = function(...) {
 }
 
 gh_to_spdf.default = function(geohashes, ...) {
+  if (anyDuplicated(geohashes) > 0L) {
+    idx = which(duplicated(geohashes))
+    warning("Detected ", length(idx), " duplicate input geohashes; removing")
+    geohashes = geohashes[-idx]
+  }
   sp::SpatialPolygonsDataFrame(
     gh_to_sp(geohashes),
     data = data.frame(row.names = geohashes, ID = seq_along(geohashes))
@@ -42,8 +47,15 @@ gh_to_spdf.data.frame = function(gh_df, gh_col = 'gh', ...) {
   if (is.na(idx <- match(gh_col, names(gh_df))))
     stop('Searched for geohashes at a column named "',
          gh_col, '", but found nothing.')
+  gh = gh_df[[idx]]
+  if (anyDuplicated(gh) > 0L) {
+    idx = which(duplicated(gh))
+    warning("Detected ", length(idx), " duplicate input geohashes; removing")
+    gh = gh[-idx]
+    gh_df = gh_df[-idx, , drop = FALSE]
+  }
   sp::SpatialPolygonsDataFrame(
-    gh_to_sp(gh_df[[idx]]), data = gh_df, match.ID = FALSE
+    gh_to_sp(gh), data = gh_df, match.ID = FALSE
   )
 }
 
