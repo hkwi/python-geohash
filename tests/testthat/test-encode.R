@@ -58,7 +58,7 @@ test_that('geohash encoder works', {
   expect_error(gh_encode(y, x, 0), 'Precision is measured', fixed = TRUE)
 
   # invalid input
-  expect_error(gh_encode(90, x), 'Invalid latitude at index 1', fixed = TRUE)
+  expect_error(gh_encode(100, x), 'Invalid latitude at index 1', fixed = TRUE)
   expect_error(gh_encode(-91, x), 'Invalid latitude at index 1', fixed = TRUE)
   expect_error(gh_encode(c(y, 90), c(x, x)),
                'Invalid latitude at index 2', fixed = TRUE)
@@ -69,8 +69,17 @@ test_that('geohash encoder works', {
 
   # semi-valid auto-corrected input -- 180 --> -180 by wrapping
   expect_equal(gh_encode(y, 180), '80008n')
-  expect_equal(gh_encode(y, 29347590823475982734), 'sb18en')
+  expect_equal(gh_encode(y, 2934759082347598273), '8252sn')
 
   # missing input
   expect_equal(gh_encode(c(y, NA), c(x, NA)), c('s0h09n', NA_character_))
+
+  # different branch for precision=1 of the above errors
+  expect_error(gh_encode(100, x, 1L),
+               'Invalid latitude at index 1', fixed = TRUE)
+  expect_error(gh_encode(y, 180, 1L), '8')
+  expect_error(gh_encode(NA, NA, 1L), NA_character_)
+
+  # stress testing
+  expect_equal(gh_encode(numeric(), numeric()), character())
 })

@@ -216,16 +216,14 @@ static int geohash_encode_impl(double latitude, double longitude, char* r){
 	char lr[27];
 
 	if(!double_to_i64(latitude/90.0, &lat64) || !double_to_i64(longitude/180.0, &lon64)){
-		return GEOHASH_INVALIDARGUMENT;
+		return GEOHASH_INVALIDARGUMENT; // # nocov
 	}
 	for(int i=0; i<8; i++){
 		interleaved[7-i] = interleave((uint8_t)(lon64>>(i*8)), (uint8_t)(lat64>>(i*8)));
 	}
 
 	int ret = GEOHASH_OK;
-	if((ret=interleaved_to_geohashstr(interleaved, 8, lr, 26)) != GEOHASH_OK){
-		return ret;
-	}
+	if((ret=interleaved_to_geohashstr(interleaved, 8, lr, 26)) != GEOHASH_OK) return ret; // # nocov
 	lr[26] = '\0';
 
 	memcpy(r, (const char*)lr, 27);
@@ -543,7 +541,7 @@ List gh_decode_(StringVector geohashes, bool include_delta, int coord_loc) {
       if (ret != GEOHASH_OK) {
         switch (ret) {
         case GEOHASH_NOTSUPPORTED:
-          stop("Unknown endian encountered; please report your use case.");
+          stop("Unknown endian encountered; please report your use case."); // # nocov
         case GEOHASH_INVALIDCODE:
           stop("Invalid geohash; check '%s' at index %d.\nValid characters: [0123456789bcdefghjkmnpqrstuvwxyz]",
                (std::string) geohashes[i], i + 1);
@@ -710,8 +708,8 @@ static int geo_neighbors_impl(char *hashcode, char* dst, size_t dst_length, int 
 	size_t dst_count = 0;
 	uint16_t *intr_dst = interleaved + interleaved_length;
 	if((ret = neighbors(interleaved, hashcode_length*5, intr_dst, interleaved_length*8, &dst_count) != GEOHASH_OK)){
-		free(interleaved);
-		return ret;
+		free(interleaved); // # nocov alternatives are GEOHASH_INTERNALERROR/GEOHASH_NOMEMORY
+		return ret; // # nocov
 	}
 
 	size_t blen = 0;
@@ -719,15 +717,15 @@ static int geo_neighbors_impl(char *hashcode, char* dst, size_t dst_length, int 
 	blen++; // for string NULL terminator
 	char *buffer = (char*)malloc(sizeof(char)*blen);
 	if(buffer==NULL){
-		free(interleaved);
+		free(interleaved); // # nocov
 		return GEOHASH_NOMEMORY; // # nocov
 	}
 
 	for(unsigned int i=0; i<dst_count; i++){
 		if((ret = interleaved_to_geohashstr(intr_dst+i*interleaved_length, interleaved_length, buffer, blen)) != GEOHASH_OK){
-			free(interleaved);
-			free(buffer);
-			return ret;
+			free(interleaved); // # nocov only alternative is GEOHASH_INTERNALERROR
+			free(buffer); // # nocov
+			return ret; // # nocov
 		}
 		buffer[hashcode_length] = '\0';
 		size_t t = hashcode_length + 1;
@@ -814,7 +812,7 @@ List gh_neighbors_(StringVector geohashes, bool self = true) {
         northeast[i] = buffer + 4*blen;
         break;
       default: {
-        free(buffer);
+        free(buffer); // # nocov
         stop("Internal error. Please report."); // # nocov
       }
       }
@@ -828,7 +826,7 @@ List gh_neighbors_(StringVector geohashes, bool self = true) {
       northwest[i] = buffer + 6*blen;
       northeast[i] = buffer + 7*blen;
     } else {
-      free(buffer);
+      free(buffer); // # nocov
       stop("Internal error. Please report."); // # nocov
     }
     free(buffer);
