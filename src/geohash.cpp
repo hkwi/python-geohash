@@ -370,8 +370,8 @@ static int geohashstr_to_interleaved(char* r, size_t length, uint16_t *interleav
 	};
 	for(unsigned int i=0; i<length; i++){
 		if(r[i]==0){
-			length = i;
-			break;
+			length = i; // # nocov not hit by intToUtf8(0), rawToChar(as.raw(0)), or ''
+			break; // # nocov
 		}else if(r[i]<0 || map[(unsigned char)r[i]]=='|'){
 			return GEOHASH_INVALIDCODE;
 		}
@@ -664,15 +664,15 @@ static int neighbors(uint16_t *interleaved, size_t bitlength, uint16_t* dst, siz
 
 	size_t neighbour_count = 0;
 	for(unsigned int i=0;i<3;i++){
-		if(i>0 && uint8s_cmp(lats[i-1], lats[i], lat_len)==0){
-			continue;
-		}
-		for(int j=0;j<3;j++){
-			if(j>0 && uint8s_cmp(lons[j-1], lons[j], lon_len)==0){
-				continue;
-			}
-			if(i==0 && j==0){
-				continue;
+	  if(i>0 && uint8s_cmp(lats[i-1], lats[i], lat_len)==0){
+	    continue;
+	  }
+	  for(int j=0;j<3;j++){
+	    if(j>0 && uint8s_cmp(lons[j-1], lons[j], lon_len)==0){
+	      continue;
+	    }
+	    if(i==0 && j==0){
+	      continue;
 			}
 
 			for(unsigned int k=0; k<interleaved_length; k++){
@@ -768,7 +768,7 @@ List gh_neighbors_(StringVector geohashes, bool self = true) {
       free(buffer);
       switch (ret) {
       case GEOHASH_NOTSUPPORTED:
-        stop("Unknown endian encountered; please report your use case.");
+        stop("Unknown endian encountered; please report your use case."); // # nocov
       case GEOHASH_INVALIDCODE:
         stop("Invalid geohash; check '%s' at index %d.\nValid characters: [0123456789bcdefghjkmnpqrstuvwxyz]",
              (std::string) geohashes[i], i + 1);
@@ -778,6 +778,7 @@ List gh_neighbors_(StringVector geohashes, bool self = true) {
     }
     // "border" geohashes  should abut the north/south pole
     if (string_count == 5) {
+      // should be able to access [0] because string_count == 5
       switch (geohashes[i][0]) {
       // north pole-adjacent geohashes must start with:
       case 'b':
@@ -825,6 +826,10 @@ List gh_neighbors_(StringVector geohashes, bool self = true) {
       north[i] = buffer + 5*blen;
       northwest[i] = buffer + 6*blen;
       northeast[i] = buffer + 7*blen;
+    } else if (string_count == 0) {
+      // !nzchar(geohashes[i])
+      west[i] = east[i] = south[i] = southwest[i] = southeast[i] =
+        north[i] = northwest[i] = northeast[i] = NA_STRING;
     } else {
       free(buffer); // # nocov
       stop("Internal error. Please report."); // # nocov
