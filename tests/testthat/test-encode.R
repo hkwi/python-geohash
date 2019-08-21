@@ -69,7 +69,7 @@ test_that('geohash encoder works', {
 
   # semi-valid auto-corrected input -- 180 --> -180 by wrapping
   expect_equal(gh_encode(y, 180), '80008n')
-  expect_equal(gh_encode(y, 2934759082347598273), '8252sn')
+  expect_equal(gh_encode(y, 293475908), 'db508w')
 
   # missing input
   expect_equal(gh_encode(c(y, NA), c(x, NA)), c('s0h09n', NA_character_))
