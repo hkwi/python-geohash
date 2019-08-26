@@ -205,7 +205,7 @@ static int interleaved_to_geohashstr(uint16_t *interleaved, size_t length, char*
 		if(j==15) w[15] = (unsigned char)( i[4]);
 	}
 	for(unsigned int j=0; j<dst_length; j++){
-	  // 0x1f = 00011111 blanks the leftmost 3 bits to ensure value in [0, 31]
+    // 0x1f = 00011111 blanks the leftmost 3 bits to ensure value in [0, 31]
 		dst[j] = map[dst[j]&0x1F];
 	}
 	return GEOHASH_OK;
