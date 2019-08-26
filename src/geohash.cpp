@@ -183,8 +183,11 @@ static int interleaved_to_geohashstr(uint16_t *interleaved, size_t length, char*
 		i+=5;
 		w+=16;
 	}
-	for(unsigned int j=0; j<dst_length%16; j++){
-		if(j== 0) w[ 0] = (unsigned char)( i[0]>>11);
+
+  // #10 -- need to be sure we're not accessing i beyond the end of
+  //   interleaved or we'll hit memory access stack overflow
+	for(unsigned int j=0; j<dst_length%16 && j/3<length%5; j++){
+	  if(j== 0) w[ 0] = (unsigned char)( i[0]>>11);
 		if(j== 1) w[ 1] = (unsigned char)( i[0]>>6);
 		if(j== 2) w[ 2] = (unsigned char)( i[0]>>1);
 		if(j== 3) w[ 3] = (unsigned char)((i[1]>>12) + (i[0]<<4));
@@ -202,6 +205,7 @@ static int interleaved_to_geohashstr(uint16_t *interleaved, size_t length, char*
 		if(j==15) w[15] = (unsigned char)( i[4]);
 	}
 	for(unsigned int j=0; j<dst_length; j++){
+    // 0x1f = 00011111 blanks the leftmost 3 bits to ensure value in [0, 31]
 		dst[j] = map[dst[j]&0x1F];
 	}
 	return GEOHASH_OK;
@@ -713,7 +717,7 @@ static int geo_neighbors_impl(char *hashcode, char* dst, size_t dst_length, int 
 	}
 
 	size_t blen = 0;
-	while(blen*5 < interleaved_length*16){ blen++; }
+	while(5*blen++ < 16*interleaved_length);
 	blen++; // for string NULL terminator
 	char *buffer = (char*)malloc(sizeof(char)*blen);
 	if(buffer==NULL){
