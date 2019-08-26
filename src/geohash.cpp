@@ -179,7 +179,7 @@ static int interleaved_to_geohashstr(uint16_t *interleaved, size_t length, char*
 		i+=5;
 		w+=16;
 	}
-	for(unsigned int j=0; j<dst_length%16; j++){
+	for(unsigned int j=0; j<dst_length%16 && j/3<length%5; j++){
 		if(j== 0) w[ 0] = (unsigned char)( i[0]>>11);
 		if(j== 1) w[ 1] = (unsigned char)( i[0]>>6);
 		if(j== 2) w[ 2] = (unsigned char)( i[0]>>1);
