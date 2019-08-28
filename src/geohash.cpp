@@ -227,7 +227,7 @@ static int geohash_encode_impl(double latitude, double longitude, char* r){
 	}
 
 	int ret = GEOHASH_OK;
-	if((ret=interleaved_to_geohashstr(interleaved, 8, lr, 26)) != GEOHASH_OK) return ret; // # nocov
+	if((ret=interleaved_to_geohashstr(interleaved, 8, lr, 27)) != GEOHASH_OK) return ret; // # nocov
 	lr[26] = '\0';
 
 	memcpy(r, (const char*)lr, 27);
