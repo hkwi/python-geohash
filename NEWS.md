@@ -4,7 +4,9 @@
 
 ### BUG FIXES
 
- 1. CRAN submission again detected memory issues (accessing memory beyond which was declared for an array), reproduced & fixed in [#18](https://github.com/MichaelChirico/geohashTools/pull/18).
+ 1. CRAN submission again detected memory issues (accessing memory beyond which was declared for an array), reproduced & fixed in [#18](https://github.com/MichaelChirico/geohashTools/pull/18); the original fix also led to an uninitialized access error, [#21](https://github.com/MichaelChirico/geohashTools/issues/21).
+ 
+ 2. CRAN submission also detected a type mismatch error, [#20](https://github.com/MichaelChirico/geohashTools/issues/20).
 
 ## v0.2.2
 

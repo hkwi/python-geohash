@@ -161,53 +161,37 @@ static int interleaved_to_geohashstr(uint16_t *interleaved, size_t length, char*
 		return GEOHASH_INTERNALERROR; // # nocov
 	}
 
-	unsigned char *w = (unsigned char*)dst;
 	uint16_t *i = interleaved;
-	for(unsigned int j=0; j<dst_length/16; j++){
-		w[ 0] = (unsigned char)( i[0]>>11);
-		w[ 1] = (unsigned char)( i[0]>>6);
-		w[ 2] = (unsigned char)( i[0]>>1);
-		w[ 3] = (unsigned char)((i[1]>>12) + (i[0]<<4));
-		w[ 4] = (unsigned char)( i[1]>>7);
-		w[ 5] = (unsigned char)( i[1]>>2);
-		w[ 6] = (unsigned char)((i[2]>>13) + (i[1]<<3));
-		w[ 7] = (unsigned char)( i[2]>>8);
-		w[ 8] = (unsigned char)( i[2]>>3);
-		w[ 9] = (unsigned char)((i[3]>>14) + (i[2]<<2));
-		w[10] = (unsigned char)( i[3]>>9);
-		w[11] = (unsigned char)( i[3]>>4);
-		w[12] = (unsigned char)((i[4]>>15) + (i[3]<<1));
-		w[13] = (unsigned char)( i[4]>>10);
-		w[14] = (unsigned char)( i[4]>>5);
-		w[15] = (unsigned char)( i[4]);
-		i+=5;
-		w+=16;
+	// Originally, used a version that did three loops over dst --
+	//   (1) in groups of 16, assign val as below
+	//   (2) for the remainder (last dst_length%16), assign val as below
+	//   (3) pass val through map
+	// But it was tough to keep track of when i[length] would happen
+	//   (this constitutes an out-of-bounds error that only shows up
+	//    in valgrind-type tests, and inconsistently at that), and simultaneously
+	//   to make sure we don't access uninitialized regions of dst
+	// The version below thus handles the above by taking one pass over dst and,
+	//   if it breaks out early due to reaching length, initializes the rest of dst
+	// See for example #21, #10, #9
+	unsigned int j=0;
+	for(; j<dst_length; j++){
+	  unsigned int jmod = j % 16;
+	  unsigned int jmod_d3 = jmod/3, jmod_r3 = jmod%3;
+	  unsigned int idx = 5*(j/16) + jmod_d3;
+	  static unsigned char val;
+	  if (idx >= length) break;
+	  if (jmod == 0) {
+	    val = (unsigned char)(i[idx] >> 11);
+	  } else if (jmod == 15) {
+	    val = (unsigned char)(i[idx-1]); // << 0, implicitly
+	  } else if (jmod_r3 == 0) {
+	    val = (unsigned char)( (i[idx] >> (11 + jmod_d3 - 5*jmod_r3)) + (i[idx-1] << (5 - jmod_d3)));
+	  } else {
+	    val = (unsigned char)( i[idx] >> (11 + jmod_d3 - 5*jmod_r3) );
+	  }
+	  dst[j] = map[val & 0x1F];
 	}
-
-  // #10 -- need to be sure we're not accessing i beyond the end of
-  //   interleaved or we'll hit memory access stack overflow
-	for(unsigned int j=0; j<dst_length%16 && j/3<length%5; j++){
-	  if(j== 0) w[ 0] = (unsigned char)( i[0]>>11);
-		if(j== 1) w[ 1] = (unsigned char)( i[0]>>6);
-		if(j== 2) w[ 2] = (unsigned char)( i[0]>>1);
-		if(j== 3) w[ 3] = (unsigned char)((i[1]>>12) + (i[0]<<4));
-		if(j== 4) w[ 4] = (unsigned char)( i[1]>>7);
-		if(j== 5) w[ 5] = (unsigned char)( i[1]>>2);
-		if(j== 6) w[ 6] = (unsigned char)((i[2]>>13) + (i[1]<<3));
-		if(j== 7) w[ 7] = (unsigned char)( i[2]>>8);
-		if(j== 8) w[ 8] = (unsigned char)( i[2]>>3);
-		if(j== 9) w[ 9] = (unsigned char)((i[3]>>14) + (i[2]<<2));
-		if(j==10) w[10] = (unsigned char)( i[3]>>9);
-		if(j==11) w[11] = (unsigned char)( i[3]>>4);
-		if(j==12) w[12] = (unsigned char)((i[4]>>15) + (i[3]<<1));
-		if(j==13) w[13] = (unsigned char)( i[4]>>10);
-		if(j==14) w[14] = (unsigned char)( i[4]>>5);
-		if(j==15) w[15] = (unsigned char)( i[4]);
-	}
-	for(unsigned int j=0; j<dst_length; j++){
-    // 0x1f = 00011111 blanks the leftmost 3 bits to ensure value in [0, 31]
-		dst[j] = map[dst[j]&0x1F];
-	}
+	while (j < dst_length) dst[j++] = '\0';
 	return GEOHASH_OK;
 }
 
@@ -459,11 +443,12 @@ static int geohash_decode_impl(char* r, size_t length, double *latitude, double 
 	i64_to_double(lat64, &t);
 	// alternately gain 2 or 3 powers of 2 each zoom level;
 	//   NB: integer division is safe since numerator always integral
-	*delta_latitude = 45.0/(double) (1 << ((5*length - (length % 2))/2 - 1));
+	// #20 1 is int but RHS can be > 32 so use LL to try & get 64-bit option
+	*delta_latitude = 45.0/(double) (1LL << ((5*length - (length % 2))/2 - 1));
 	*latitude = t*90.0 + *delta_latitude * (double) ky;
 
 	i64_to_double(lon64, &t);
-	*delta_longitude = 45.0/(double) (1 << ((5*length + (length % 2))/2 - 2));
+	*delta_longitude = 45.0/(double) (1LL << ((5*length + (length % 2))/2 - 2));
 	*longitude = t*180.0 + *delta_longitude * (double) kx;
 
 	return GEOHASH_OK;
