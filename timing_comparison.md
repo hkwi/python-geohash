@@ -1,13 +1,15 @@
 
-Comparing efficiency with `geohash` package
-===========================================
+# Comparing efficiency with `geohash` package
 
-I mentioned in the [`README`](README.md) that `gh_encode` is fast; how does it compare to the [`geohash`](https://github.com/Ironholds/geohash) package (unfortunately, this package was removed from CRAN, which is a big part of the motivation for making this package in the first place)?
+I mentioned in the [`README`](README.md) that `gh_encode` is fast; how
+does it compare to the [`geohash`](https://github.com/Ironholds/geohash)
+package (unfortunately, this package was removed from CRAN, which is a
+big part of the motivation for making this package in the first place)?
 
-Here is a small set of timing exercises (note -- this may take several minutes to reproduce on your machine)
+Here is a small set of timing exercises (note – this may take several
+minutes to reproduce on your machine)
 
-Tools and setup
----------------
+## Tools and setup
 
 ``` r
 library(microbenchmark)
@@ -19,8 +21,7 @@ timings = CJ(n_rows = nn, precision = kk)
 setkey(timings)
 ```
 
-Encoding geohashes
-------------------
+## Encoding geohashes
 
 ``` r
 set.seed(49843)
@@ -44,8 +45,7 @@ for (n in nn) {
 }
 ```
 
-Decoding geohashes
-------------------
+## Decoding geohashes
 
 ``` r
 set.seed(459849)
@@ -68,8 +68,7 @@ for (n in nn) {
 }
 ```
 
-Finding geohash neighbors
--------------------------
+## Finding geohash neighbors
 
 ``` r
 # re-use ggghhh from above
@@ -88,11 +87,9 @@ for (n in nn) {
 }
 ```
 
-Results
-=======
+# Results
 
-Absolute timing
----------------
+## Absolute timing
 
 ``` r
 par(oma = c(0, 0, 2, 0))
@@ -121,10 +118,9 @@ timings[ , {
 }]
 ```
 
-![](timing-absolute_results-1.png)
+![](timing-absolute_results-1.png)<!-- -->
 
-Comparison against `geohash`: Relative timing
----------------------------------------------
+## Comparison against `geohash`: Relative timing
 
 ``` r
 par(oma = c(0, 0, 2, 0))
@@ -154,4 +150,4 @@ timings[ , {
 }]
 ```
 
-![](timing-relative_results-1.png)
+![](timing-relative_results-1.png)<!-- -->
