@@ -1,14 +1,12 @@
 # https://epsg.io/4326
 wgs = function() sp::CRS('+init=epsg:4326')
 
-# nocov start
 check_suggested = function(pkg) {
   if (!requireNamespace(pkg, quietly = TRUE)) {
     stop("This function requires an installation of ", pkg,
          "; install.packages('", pkg, "') to proceed.")
   }
 }
-# nocov end
 
 gh_to_sp = function(geohashes) {
   check_suggested('sp')

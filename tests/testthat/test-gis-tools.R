@@ -25,6 +25,11 @@ test_that('gh_to_sp works', {
   expect_warning(ghSP2 <- gh_to_sp(rep(mauritius, 2L)),
                  'duplicate input geohashes', fixed = TRUE)
   expect_equal(ghSP, ghSP2)
+
+  # simulate missing sp
+  stub(geohashTools:::check_suggested, 'requireNamespace', FALSE)
+  expect_error(gh_to_sp(mauritius),
+               'requires an installation of sp', fixed = TRUE)
 })
 
 test_that('gh_to_spdf.default works', {
