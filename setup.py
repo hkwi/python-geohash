@@ -12,7 +12,7 @@ setup(name='python-geohash',
 	version='0.8.5',
 	description='Fast, accurate python geohashing library',
 	author='Hiroaki Kawai',
-	url='http://code.google.com/p/python-geohash/',
+	url='https://github.com/hkwi/python-geohash',
 	py_modules=['geohash','quadtree','jpgrid','jpiarea'],
 	ext_modules = [c1]
 )
