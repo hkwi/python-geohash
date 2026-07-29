@@ -92,5 +92,57 @@ class TestNeighbors(unittest.TestCase):
 		self.assertEqual(set(['w', 'x', 'y', '8', 'b']), set(geohash.neighbors("z")))
 		self.assertEqual(set(['2', '6', '1', '0', '4', '9', '8', 'd']), set(geohash.neighbors("3")))
 
+class TestUpperCase(unittest.TestCase):
+	# The _geohash extension accepts upper-case base32 letters, so the
+	# pure-Python fallback (used whenever the extension is not built, e.g. the
+	# README's "copy geohash.py" path and every non-x86_64-Linux install) must
+	# decode the same codes to the same result.
+	codes = ['ezs42', 'u4pruydqqvj', 'dr5regw3pg', 'sunny', 'bgr96qxvpd46']
+
+	def test_decode_upper_equals_lower(self):
+		for code in self.codes:
+			self.assertEqual(geohash.decode(code.upper()), geohash.decode(code))
+
+	def test_decode_exactly_upper_equals_lower(self):
+		for code in self.codes:
+			self.assertEqual(geohash.decode_exactly(code.upper()), geohash.decode_exactly(code))
+
+	def test_bbox_upper_equals_lower(self):
+		for code in self.codes:
+			self.assertEqual(geohash.bbox(code.upper()), geohash.bbox(code))
+
+	def test_neighbors_upper_equals_lower(self):
+		for code in self.codes:
+			self.assertEqual(set(geohash.neighbors(code.upper())), set(geohash.neighbors(code)))
+
+	def test_expand_upper_equals_lower(self):
+		for code in self.codes:
+			expanded = geohash.expand(code.upper())
+			self.assertIn(code.upper(), expanded)
+			self.assertEqual(set(expanded) - {code.upper()}, set(geohash.neighbors(code)))
+
+	def test_mixed_case(self):
+		self.assertEqual(geohash.decode('Ezs42'), geohash.decode('ezs42'))
+		self.assertEqual(geohash.decode('eZS42'), geohash.decode('ezs42'))
+
+	def test_every_base32_letter_uppercases(self):
+		for c in '0123456789bcdefghjkmnpqrstuvwxyz':
+			code = 'e' + c + 's'
+			self.assertEqual(geohash.decode(code.upper()), geohash.decode(code))
+
+class TestInvalidCode(unittest.TestCase):
+	# Letters a, i, l, o (and their upper-case forms) are not in the geohash
+	# base32 alphabet; the extension raises ValueError for them, so the
+	# fallback must too rather than leaking a bare KeyError.
+	invalid = ['abc', 'io', 'ezs42a', 'ezs42L', 'EZS42O', 'ezs 42', 'ezs42!', 'A', 'I', 'l', 'o']
+
+	def test_invalid_char_raises_value_error(self):
+		for code in self.invalid:
+			for fn in (geohash.decode, geohash.decode_exactly, geohash.bbox,
+			           geohash.neighbors, geohash.expand):
+				with self.assertRaises(ValueError):
+					fn(code)
+
+
 if __name__=='__main__':
 	unittest.main()
