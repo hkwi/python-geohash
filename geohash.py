@@ -14,6 +14,11 @@ _base32 = '0123456789bcdefghjkmnpqrstuvwxyz'
 _base32_map = {}
 for i in range(len(_base32)):
 	_base32_map[_base32[i]] = i
+	# The _geohash extension accepts upper-case base32 letters (see
+	# build_base32_decode_map in src/geohash_core.rs); mirror that here so the
+	# pure-Python fallback decodes the same codes the extension does.
+	if _base32[i].isalpha():
+		_base32_map[_base32[i].upper()] = i
 del i
 
 LONG_ZERO = 0
@@ -146,7 +151,12 @@ def _decode_c2i(hashcode):
 	lat_length = 0
 	lon_length = 0
 	for i in hashcode:
-		t = _base32_map[i]
+		try:
+			t = _base32_map[i]
+		except KeyError:
+			# Match the extension's error (map_error in src/lib.rs) instead of
+			# leaking a bare KeyError for an out-of-alphabet character.
+			raise ValueError("geohash code is [0123456789bcdefghjkmnpqrstuvwxyz]+") from None
 		if bit_length%2==0:
 			lon = lon<<3
 			lat = lat<<2
